@@ -30,15 +30,15 @@ import com.ggh.video.utils.CheckPermissionUtils;
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback, ReceiverCallback {
+public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback {
     private SurfaceHolder mHoder;
     SurfaceView surfaceView;
     SurfaceView textureView;
     CameraManager manager;
     private Encode mEncode;
     private VideoDecodeManager mDecode;
-    private RtpSender sender;
-    private RtpReceiver receiver;
+    private UDPSender sender;
+    private UDPReceiver receiver;
     private Frame mFrame;
 
     @Override
@@ -50,10 +50,10 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         initSurface(textureView);
         mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
-        sender = new RtpSender();
-        receiver = new RtpReceiver();
+        sender = new UDPSender();
+        receiver = new UDPReceiver();
         receiver.startRecivice();
-        receiver.setCallback(this);
+//        receiver.setCallback(this);
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,14 +89,14 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 //        sender.sendData(mEncode.encodeFrame(data),mEncode.encodeFrame(data).length);
     }
 
-    @Override
+  /*  @Override
     public void callback(final byte[] data) {
         if (mDecode != null) {
             Log.w("video", "接收数据 大小为" + data.length);
             mDecode.onDecodeData(data);
 
         }
-    }
+    }*/
 
 
     /**

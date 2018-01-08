@@ -45,7 +45,7 @@ public class UDPSender extends Send {
             e.printStackTrace();
         }
 //        initDataPipe();
-        initTaskSend();
+//        initTaskSend();
 
     }
 
@@ -95,7 +95,6 @@ public class UDPSender extends Send {
             @Override
             public void run() {
                 isStratSendData = true;
-                Log.d("UDPSender", "准备发送");
                 while (isStratSendData) {
                     if (bufferFrameList != null && bufferFrameList.size() > 0) {
                         Frame frame = bufferFrameList.get(0);
@@ -116,10 +115,8 @@ public class UDPSender extends Send {
      */
     public void sendData(byte[] data, int size) {
         try {
-            byte[] test = {1,2,3,4};
-            mPacket = new DatagramPacket(test, 3, ip, NetConfig.REMOTEPORT);
+            mPacket = new DatagramPacket(data, size, ip, NetConfig.REMOTEPORT);
             mPacket.setData(data);
-            Log.e("udpsender", "发送一段数据 " + data.length + ":" + size);
             mSocket.send(mPacket);
         } catch (IOException e) {
             e.printStackTrace();
@@ -138,10 +135,17 @@ public class UDPSender extends Send {
     }
 
     @Override
-    public void addData(Frame frame) {
-        if (null != bufferFrameList) {
+    public void addData(final Frame frame) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+              sendData(frame.getData(), frame.getSize());
+            }
+        }).start();
+
+        /*if (null != bufferFrameList) {
             bufferFrameList.add(frame);
-        }
+        }*/
     }
 
     @Override

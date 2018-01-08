@@ -1,5 +1,7 @@
 package com.ggh.video.netty;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,13 +23,13 @@ public class EchoSeverHandler extends SimpleChannelInboundHandler<DatagramPacket
         ByteBuf buf = (ByteBuf) packet.copy().content();
         byte[] req = new byte[buf.readableBytes()];
         buf.readBytes(req);
-        String body = new String(req, CharsetUtil.UTF_8);
-        System.out.println("【NOTE】>>>>>> 收到客户端的数据："+body);
+       /* String body = new String(req, CharsetUtil.UTF_8);
+        System.out.println("【NOTE】>>>>>> 收到客户端的数据："+body);*/
 
         // 回复一条信息给客户端
-        ctx.writeAndFlush(new DatagramPacket(
+    /*    ctx.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer("Hello，我是Server，我的时间戳是"+System.currentTimeMillis()
                         , CharsetUtil.UTF_8)
-                , packet.sender())).sync();
+                , packet.sender())).sync();*/
     }
 }

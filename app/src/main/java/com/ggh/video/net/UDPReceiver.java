@@ -2,10 +2,12 @@ package com.ggh.video.net;
 
 import android.util.Log;
 
+import com.ggh.video.App;
 import com.ggh.video.netty.EchoSeverHandler;
 import com.ggh.video.utils.NetUtils;
 
 import java.net.DatagramPacket;
+import java.net.UnknownHostException;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.EventLoopGroup;
@@ -29,7 +31,13 @@ public class UDPReceiver extends Receiver {
     public UDPReceiver() {
         mPacket = new DatagramPacket(packetBuf,packetSize);
 //        initRxReceiver();
-        init();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                init();
+
+            }
+        }).start();
     }
 
     private void init(){
@@ -39,9 +47,9 @@ public class UDPReceiver extends Receiver {
                 .channel(NioDatagramChannel.class)
                 .handler(new EchoSeverHandler());
 
-        // 服务端监听在9999端口
+        // 服务端监听端口
         try {
-            b.bind(NetConfig.REMOTEPORT).sync().channel().closeFuture().await();
+            b.bind(19999).sync().channel().closeFuture().await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
