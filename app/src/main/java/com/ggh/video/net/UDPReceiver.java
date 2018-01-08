@@ -2,8 +2,15 @@ package com.ggh.video.net;
 
 import android.util.Log;
 
+import com.ggh.video.netty.EchoSeverHandler;
+import com.ggh.video.utils.NetUtils;
+
 import java.net.DatagramPacket;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -21,9 +28,24 @@ public class UDPReceiver extends Receiver {
     private int packetSize = 65536;
     public UDPReceiver() {
         mPacket = new DatagramPacket(packetBuf,packetSize);
-        initRxReceiver();
+//        initRxReceiver();
+        init();
     }
 
+    private void init(){
+        Bootstrap b = new Bootstrap();
+        EventLoopGroup group = new NioEventLoopGroup();
+        b.group(group)
+                .channel(NioDatagramChannel.class)
+                .handler(new EchoSeverHandler());
+
+        // 服务端监听在9999端口
+        try {
+            b.bind(NetConfig.REMOTEPORT).sync().channel().closeFuture().await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     private void initRxReceiver() {
         Observable.create(new ObservableOnSubscribe<Frame>() {
             @Override

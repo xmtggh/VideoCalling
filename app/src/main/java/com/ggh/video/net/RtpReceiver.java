@@ -71,7 +71,6 @@ public class RtpReceiver extends Receiver {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Log.d("ggh", "接收数据包   " + rtpReceivePacket.getPayloadLength());
                 if (LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket() != null && !LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket().isClosed()) {
                     connectPack(rtpReceivePacket);
                 }

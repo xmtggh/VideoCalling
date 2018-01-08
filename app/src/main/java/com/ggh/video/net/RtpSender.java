@@ -44,7 +44,6 @@ public class RtpSender extends Send {
 
     @Override
     public void addData(Frame frame) {
-        Log.d("ggh", "发送数据长度  " + frame.getData().length);
         if (doTask) {
             sendData(frame);
         }
