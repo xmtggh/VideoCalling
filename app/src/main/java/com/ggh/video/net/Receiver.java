@@ -4,9 +4,9 @@ package com.ggh.video.net;
  * Created by ZQZN on 2017/12/12.
  */
 
-public interface Receiver {
+public abstract class Receiver {
 
-   void startRecivice();
+   protected abstract void startRecivice();
 
-   void stopRecivice();
+   protected abstract void stopRecivice();
 }

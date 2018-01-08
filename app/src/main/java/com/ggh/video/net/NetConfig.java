@@ -9,8 +9,9 @@ import java.net.UnknownHostException;
 
 public class NetConfig {
 
-    public static final String REMOTEIP = "192.168.1.207";
+    public static final String REMOTEIP = "192.168.1.247";
     public static final int REMOTEPORT = 19999;
+    public static final int packSize = 1500;
 
     /**
      * 获取ip地址

@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.TextureView;
 
 import com.ggh.video.device.CameraConfig;
@@ -30,19 +31,17 @@ public class VideoDecodeManager {
 
     private boolean isStartDecode = false;
 
-    public VideoDecodeManager(TextureView surface) {
-        initVideoEncode(surface);
+    public VideoDecodeManager(SurfaceHolder holder) {
+        initVideoEncode(holder);
     }
 
-    public boolean initVideoEncode(TextureView surface) {
-
+    public boolean initVideoEncode(SurfaceHolder holder) {
         MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, CameraConfig.WIDTH, CameraConfig.HEIGHT);
-
         try {
             // Get an instance of MediaCodec and give it its Mime type
             vDeCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
             // Configure the codec
-            vDeCodec.configure(format, new Surface(surface.getSurfaceTexture()), null, 0);
+            vDeCodec.configure(format, holder.getSurface(), null, 0);
             // Start the codec
             vDeCodec.start();
         } catch (Exception e) {

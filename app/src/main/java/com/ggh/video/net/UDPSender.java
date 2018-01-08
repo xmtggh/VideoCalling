@@ -25,7 +25,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by ZQZN on 2017/12/12.
  */
 
-public class UDPSender implements Send {
+public class UDPSender extends Send {
     private List<Frame> bufferFrameList;
 
     private DatagramPacket mPacket;

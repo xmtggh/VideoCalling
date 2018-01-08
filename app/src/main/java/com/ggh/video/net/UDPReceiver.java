@@ -14,7 +14,7 @@ import io.reactivex.disposables.Disposable;
  * Created by ZQZN on 2017/12/12.
  */
 
-public class UDPReceiver implements Receiver {
+public class UDPReceiver extends Receiver {
     private boolean isReceiver = false;
     private DatagramPacket mPacket;
     private byte[] packetBuf = new byte[65536];

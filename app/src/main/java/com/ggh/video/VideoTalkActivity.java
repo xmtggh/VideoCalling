@@ -1,18 +1,27 @@
 package com.ggh.video;
 
 import android.app.Activity;
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 
+import com.ggh.video.decode.VideoDecodeManager;
 import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
 import com.ggh.video.net.Frame;
+import com.ggh.video.net.Receiver;
+import com.ggh.video.net.ReceiverCallback;
+import com.ggh.video.net.RtpReceiver;
+import com.ggh.video.net.RtpSender;
+import com.ggh.video.net.Send;
 import com.ggh.video.net.UDPReceiver;
 import com.ggh.video.net.UDPSender;
 import com.ggh.video.utils.CheckPermissionUtils;
@@ -21,31 +30,40 @@ import com.ggh.video.utils.CheckPermissionUtils;
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback {
+public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback, ReceiverCallback {
+    private SurfaceHolder mHoder;
     SurfaceView surfaceView;
+    SurfaceView textureView;
     CameraManager manager;
     private Encode mEncode;
-    private UDPSender sender;
-    private UDPReceiver receiver;
+    private VideoDecodeManager mDecode;
+    private RtpSender sender;
+    private RtpReceiver receiver;
+    private Frame mFrame;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_talk);
         surfaceView = (SurfaceView) findViewById(R.id.surface);
+        textureView = (SurfaceView) findViewById(R.id.texture);
+        initSurface(textureView);
+        mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
-        sender = new UDPSender();
-//        receiver = new UDPReceiver();
-        sender.startSender();
-//        receiver.startRecivice();
+        sender = new RtpSender();
+        receiver = new RtpReceiver();
+        receiver.startRecivice();
+        receiver.setCallback(this);
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] data = {1,2,3,4};
-                        sender.testSendData(data,3);
+                        byte[] data = {1, 2, 3};
+                        mFrame.setData(data);
+                        mFrame.setSize(data.length);
+                        sender.addData(mFrame);
                     }
                 }).start();
 
@@ -63,8 +81,48 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 
     @Override
     public void onFrame(byte[] data) {
-        sender.addData(new Frame(mEncode.encodeFrame(data), mEncode.encodeFrame(data).length));
+        byte[] encode = mEncode.encodeFrame(data);
+        Log.w("video", "发送数据 大小为" + encode.length);
+        mFrame.setData(encode);
+        mFrame.setSize(encode.length);
+        sender.addData(mFrame);
 //        sender.sendData(mEncode.encodeFrame(data),mEncode.encodeFrame(data).length);
+    }
+
+    @Override
+    public void callback(final byte[] data) {
+        if (mDecode != null) {
+            Log.w("video", "接收数据 大小为" + data.length);
+            mDecode.onDecodeData(data);
+
+        }
+    }
+
+
+    /**
+     * 初始化预览界面
+     *
+     * @param mSurfaceView
+     */
+    private void initSurface(SurfaceView mSurfaceView) {
+        mHoder = mSurfaceView.getHolder();
+        mHoder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        mHoder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder surfaceHolder) {
+                mDecode = new VideoDecodeManager(surfaceHolder);
+
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+//                destroy();
+            }
+        });
     }
 
 }
