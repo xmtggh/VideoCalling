@@ -62,10 +62,10 @@ public class RtpReceiver extends Receiver {
         rtpReceivePacket = new RtpPacket(socketReceiveBuffer, 0);
         receiver = new RtspPacketReceiver(640, 480);
         bufferFrameList = new LinkedList<>();
-//        initRxReceiver();
+        initRxReceiver();
 //        initThreadReceiver();
-        DecoderThread decoder = new DecoderThread();
-        decoder.start(); //启动一个线程
+//        DecoderThread decoder = new DecoderThread();
+//        decoder.start(); //启动一个线程
 //        ConnectPacket connectPacket = new ConnectPacket();
 //        connectPacket.start();
     }
@@ -86,7 +86,12 @@ public class RtpReceiver extends Receiver {
 
 //                bufferFrameList.add(rtpReceivePacket);
                 if (LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket() != null && !LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket().isClosed()) {
-//                    connectPack(rtpReceivePacket);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            connectPack(rtpReceivePacket);
+                        }
+                    }).start();
                 }
 
             }
@@ -137,7 +142,6 @@ public class RtpReceiver extends Receiver {
                 while (isReceiver) {
                     try {
                         LocalRtpSocketProvider.getInstance().getLocalRTPSocket().receive(rtpReceivePacket);
-
                         e.onNext(rtpReceivePacket);
                         continue;
                     } catch (IOException e1) {
@@ -147,7 +151,7 @@ public class RtpReceiver extends Receiver {
 
                 }
             }
-        }).observeOn(Schedulers.newThread()).subscribeOn(Schedulers.newThread()).subscribe(new Observer<RtpPacket>() {
+        }).observeOn(Schedulers.newThread()).subscribeOn(Schedulers.io()).subscribe(new Observer<RtpPacket>() {
             @Override
             public void onSubscribe(Disposable d) {
 

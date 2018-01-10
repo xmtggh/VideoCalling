@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, RtpVideoTalkActivity.class));
             }
         });
-       /* Observable.create(new ObservableOnSubscribe<Integer>() {
+     /*   Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
             public void subscribe(ObservableEmitter<Integer> e) {
                 for (int i=0;i< 1000;i++){
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
-        }).subscribeOn(Schedulers.newThread()).subscribe(new Observer<Integer>() {
+        }).observeOn(Schedulers.newThread()).subscribeOn(Schedulers.newThread()).subscribe(new Observer<Integer>() {
             @Override
             public void onSubscribe(Disposable d) {
 

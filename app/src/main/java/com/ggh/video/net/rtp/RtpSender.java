@@ -87,7 +87,18 @@ public class RtpSender extends Send {
 
     private void sendData(final Frame frame) {
 //        send(frame);
-        rxSend(frame);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    sender.h264ToRtp(frame.getData(),frame.getSize());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+//        rxSend(frame);
     }
 
     private void rxSend(final Frame frame) {
@@ -104,12 +115,12 @@ public class RtpSender extends Send {
 
             @Override
             public void onNext(Frame fram) {
-               /* try {
+                try {
                     sender.h264ToRtp(fram.getData(),fram.getSize());
                 } catch (Exception e) {
                     e.printStackTrace();
-                }*/
-                connectPacket(fram);
+                }
+//                connectPacket(fram);
 
             }
 
@@ -168,7 +179,10 @@ public class RtpSender extends Send {
                 try {
 //                    Log.i("ggh", "序列号   "+rtpSendPacket.getTimestamp()+"时间戳   " + rtpSendPacket.getSequenceNumber());
                     LocalRtpSocketProvider.getInstance().getLocalRTPSocket().send(rtpSendPacket);
+                    Thread.sleep(20);
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
