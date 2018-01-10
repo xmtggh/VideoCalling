@@ -9,7 +9,7 @@ public class CameraConfig {
     public static final int HEIGHT = 480;
     public static final String VCODEC = "video/avc";
     public static final int vbitrate = 512000;
-    public static final int framerate = 25;
+    public static final int framerate = 15;
     public static final int IFRAME_INTERVAL = 5;
 
 }

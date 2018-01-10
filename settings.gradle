@@ -1,1 +1,1 @@
-include ':app', ':rtplib', ':sample'
+include ':app', ':rtplib', ':sample', ':netty'

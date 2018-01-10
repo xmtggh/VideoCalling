@@ -1,15 +1,21 @@
-package com.ggh.video.net;
+package com.ggh.video.net.rtp;
 
 import android.util.Log;
 
 import com.ggh.video.entity.Packet;
+import com.ggh.video.net.LocalRtpSocketProvider;
+import com.ggh.video.net.Receiver;
+import com.ggh.video.net.ReceiverCallback;
 import com.ggh.video.rtp.RtpPacket;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -41,22 +47,27 @@ public class RtpReceiver extends Receiver {
      */
     private byte[] buffer = new byte[20000];
 
-    List<Packet> datalist;
 
     private ReceiverCallback callback;
+    private LinkedList<RtpPacket> bufferFrameList;
+    private RtspPacketReceiver receiver;
 
     public void setCallback(ReceiverCallback callback) {
         this.callback = callback;
     }
 
     public RtpReceiver() {
-        datalist = new ArrayList<>();
+        params = new HashMap<>();
         //初始化socketBuffer改变时rtp_Packet也跟着改变
         rtpReceivePacket = new RtpPacket(socketReceiveBuffer, 0);
+        receiver = new RtspPacketReceiver(640, 480);
+        bufferFrameList = new LinkedList<>();
 //        initRxReceiver();
 //        initThreadReceiver();
         DecoderThread decoder = new DecoderThread();
         decoder.start(); //启动一个线程
+//        ConnectPacket connectPacket = new ConnectPacket();
+//        connectPacket.start();
     }
 
     /**
@@ -71,13 +82,30 @@ public class RtpReceiver extends Receiver {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                        Log.i("ggh", "序列号   " + rtpReceivePacket.getSequenceNumber() + "时间戳   " + rtpReceivePacket.getTimestamp());
+
+//                bufferFrameList.add(rtpReceivePacket);
                 if (LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket() != null && !LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket().isClosed()) {
-                    connectPack(rtpReceivePacket);
+//                    connectPack(rtpReceivePacket);
                 }
 
             }
 
 
+        }
+    }
+
+    class ConnectPacket extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                if (bufferFrameList.size() > 0) {
+                    RtpPacket packet = bufferFrameList.remove(0);
+                    if (packet != null)
+                        connectPack(packet);
+                }
+                continue;
+            }
         }
     }
 
@@ -103,15 +131,13 @@ public class RtpReceiver extends Receiver {
      * 初始化接收器
      */
     private void initRxReceiver() {
-        Log.d("ggh1", "初始化接收器");
         Observable.create(new ObservableOnSubscribe<RtpPacket>() {
             @Override
             public void subscribe(ObservableEmitter<RtpPacket> e) {
                 while (isReceiver) {
-                    Log.d("ggh1", "接收数据");
                     try {
                         LocalRtpSocketProvider.getInstance().getLocalRTPSocket().receive(rtpReceivePacket);
-                        Log.d("ggh1", "接收数据");
+
                         e.onNext(rtpReceivePacket);
                         continue;
                     } catch (IOException e1) {
@@ -121,7 +147,7 @@ public class RtpReceiver extends Receiver {
 
                 }
             }
-        }).subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread()).subscribe(new Observer<RtpPacket>() {
+        }).observeOn(Schedulers.newThread()).subscribeOn(Schedulers.newThread()).subscribe(new Observer<RtpPacket>() {
             @Override
             public void onSubscribe(Disposable d) {
 
@@ -130,7 +156,6 @@ public class RtpReceiver extends Receiver {
             @Override
             public void onNext(RtpPacket packet) {
                 connectPack(packet);
-                Log.d("ggh", "送去解码");
             }
 
             @Override
@@ -185,6 +210,7 @@ public class RtpReceiver extends Receiver {
         int sequence = rtp_receive_packet.getSequenceNumber();
         //获取时间戳
         long timestamp = rtp_receive_packet.getTimestamp();
+
         final byte[] frame = connectFrame(buffer, packetSize, rtp_receive_packet.hasMarker(), sequence, timestamp);
         if (frame.length <= 0) {
             return;
@@ -193,6 +219,8 @@ public class RtpReceiver extends Receiver {
             callback.callback(frame);
         }
     }
+
+    private Map<Integer, Packet> params;
 
     /**
      * 拼包
@@ -205,32 +233,31 @@ public class RtpReceiver extends Receiver {
      * @return
      */
     public byte[] connectFrame(byte[] buffer, int packSize, boolean islaskpack, int sequence, long time) {
-        int frameSize = 0;
-        byte[] currentpack = new byte[packSize];
-        System.arraycopy(buffer, 0, currentpack, 0, packSize);
-        Packet current = new Packet(currentpack, packSize, islaskpack, sequence, time);
-        datalist.add(current);
+
+        if (!params.containsKey(sequence)) {
+            byte[] currentpack = new byte[packSize];
+            System.arraycopy(buffer, 0, currentpack, 0, packSize);
+            Packet current = new Packet(currentpack, packSize, islaskpack, sequence, time);
+            params.put(sequence, current);
+        }
+
         //判断收包是否完成
         if (islaskpack) {
-            try {
-                Collections.sort(datalist, new Comparator<Packet>() {
-                    @Override
-                    public int compare(Packet lhs, Packet rhs) {
-                        return (int) (lhs.getTime() - rhs.getTime());
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            for (int i = 0; i < datalist.size(); i++) {
-                frameSize = frameSize + datalist.get(i).getBuffer().length;
-
+            int frameSize = 0;
+            for (int i = 0; i < params.size(); i++) {
+                //map是否有这个key
+                if (params.containsKey(i)) {
+                    frameSize = frameSize + params.get(i).getBuffer().length;
+                }
             }
             int lenghtafter = 0;
             byte[] frame = new byte[frameSize];
-            for (int i = 0; i < datalist.size(); i++) {
-                System.arraycopy(datalist.get(i).getBuffer(), 0, frame, lenghtafter, datalist.get(i).getBuffer().length);
-                lenghtafter = lenghtafter + datalist.get(i).getBuffer().length;
+            for (int i = 0; i < params.size(); i++) {
+                if (params.containsKey(i)) {
+                    Packet packet = params.get(i);
+                    System.arraycopy(packet.getBuffer(), 0, frame, lenghtafter, packet.getPackSize());
+                    lenghtafter = lenghtafter + packet.getPackSize();
+                }
             }
             clearBuffer();
             return frame;
@@ -241,8 +268,8 @@ public class RtpReceiver extends Receiver {
 
 
     public void clearBuffer() {
-        if (datalist != null) {
-            datalist.clear();
+        if (params != null) {
+            params.clear();
         }
     }
 }

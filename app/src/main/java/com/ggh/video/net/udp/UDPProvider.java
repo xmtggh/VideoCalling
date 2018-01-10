@@ -1,9 +1,7 @@
-package com.ggh.video.net;
+package com.ggh.video.net.udp;
 
-import android.util.Log;
+import com.ggh.video.net.NetConfig;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -32,6 +30,7 @@ public class UDPProvider {
     /**
      * 初始化udp
      */
+
     private void initSocket() {
         try {
             mSocket = new DatagramSocket(NetConfig.REMOTEPORT, NetConfig.getIpAddress());

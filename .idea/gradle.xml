@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/netty" />
             <option value="$PROJECT_DIR$/rtplib" />
             <option value="$PROJECT_DIR$/sample" />
           </set>

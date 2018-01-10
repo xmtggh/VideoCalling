@@ -3,24 +3,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-    
-    <Button 
+
+    <Button
         android:id="@+id/btn_init_sender"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Init Sender"/>
-    
-    <Button 
+
+    <Button
         android:id="@+id/btn_init_receiver"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Init Receiver"/>
-    
-    <Button 
+
+    <Button
         android:id="@+id/btn_send"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Send"/>
-    
+
 
 </LinearLayout>

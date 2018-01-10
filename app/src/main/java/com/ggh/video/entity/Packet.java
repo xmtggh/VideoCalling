@@ -11,6 +11,9 @@ public class Packet {
     public int sequence;
     public long time;
 
+    public Packet() {
+    }
+
     public Packet(byte[] buffer, int packSize, boolean islaskpack, int sequence, long time) {
         this.buffer = buffer;
         this.packSize = packSize;

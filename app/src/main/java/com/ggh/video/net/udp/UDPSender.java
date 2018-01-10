@@ -1,25 +1,27 @@
-package com.ggh.video.net;
+package com.ggh.video.net.udp;
 
-import android.print.PageRange;
 import android.util.Log;
+
+import com.ggh.video.net.Frame;
+import com.ggh.video.net.LocalUDPSocketProvider;
+import com.ggh.video.net.NetConfig;
+import com.ggh.video.net.Send;
+import com.ggh.video.net.rtp.RtspPacketReceiver;
+import com.ggh.video.net.rtp.RtspPacketSender;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by ZQZN on 2017/12/12.
@@ -36,9 +38,17 @@ public class UDPSender extends Send {
 
     private InetAddress ip;
 
+    private RtspPacketSender sender;
+
     public UDPSender() {
         bufferFrameList = new ArrayList<>();
         mSocket = LocalUDPSocketProvider.getInstance().getLocalUDPSocket();
+        sender = new RtspPacketSender(new RtspPacketSender.H264ToRtpLinsener() {
+            @Override
+            public void h264ToRtpResponse(byte[] out, int len) {
+                sendData(out, len);
+            }
+        });
         try {
             ip = NetConfig.getIpAddress();
         } catch (UnknownHostException e) {
@@ -139,7 +149,12 @@ public class UDPSender extends Send {
         new Thread(new Runnable() {
             @Override
             public void run() {
-              sendData(frame.getData(), frame.getSize());
+//              sendData(frame.getData(), frame.getSize());
+                try {
+                    sender.h264ToRtp(frame.getData(), frame.getSize());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
 
