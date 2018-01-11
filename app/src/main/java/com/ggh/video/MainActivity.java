@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, RtpVideoTalkActivity.class));
+                startActivity(new Intent(MainActivity.this, VideoTalkActivity2.class));
             }
         });
      /*   Observable.create(new ObservableOnSubscribe<Integer>() {

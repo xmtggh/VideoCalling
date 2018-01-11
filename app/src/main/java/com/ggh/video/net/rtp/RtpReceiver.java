@@ -4,8 +4,10 @@ import android.util.Log;
 
 import com.ggh.video.entity.Packet;
 import com.ggh.video.net.LocalRtpSocketProvider;
+import com.ggh.video.net.NetConfig;
 import com.ggh.video.net.Receiver;
 import com.ggh.video.net.ReceiverCallback;
+import com.ggh.video.netty.EchoSeverHandler;
 import com.ggh.video.rtp.RtpPacket;
 
 import java.io.IOException;
@@ -17,6 +19,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -62,7 +68,14 @@ public class RtpReceiver extends Receiver {
         rtpReceivePacket = new RtpPacket(socketReceiveBuffer, 0);
         receiver = new RtspPacketReceiver(640, 480);
         bufferFrameList = new LinkedList<>();
-        initRxReceiver();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                init();
+
+            }
+        }).start();
+//        initRxReceiver();
 //        initThreadReceiver();
 //        DecoderThread decoder = new DecoderThread();
 //        decoder.start(); //启动一个线程
@@ -82,7 +95,7 @@ public class RtpReceiver extends Receiver {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                        Log.i("ggh", "序列号   " + rtpReceivePacket.getSequenceNumber() + "时间戳   " + rtpReceivePacket.getTimestamp());
+                Log.i("ggh", "序列号   " + rtpReceivePacket.getSequenceNumber() + "时间戳   " + rtpReceivePacket.getTimestamp());
 
 //                bufferFrameList.add(rtpReceivePacket);
                 if (LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket() != null && !LocalRtpSocketProvider.getInstance().getLocalRTPSocket().getDatagramSocket().isClosed()) {
@@ -133,6 +146,24 @@ public class RtpReceiver extends Receiver {
     }
 
     /**
+     * netty接收
+     */
+    private void init() {
+        Bootstrap b = new Bootstrap();
+        EventLoopGroup group = new NioEventLoopGroup();
+        b.group(group)
+                .channel(NioDatagramChannel.class)
+                .handler(new EchoSeverHandler());
+
+        // 服务端监听端口
+        try {
+            b.bind(19999).sync().channel().closeFuture().await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 初始化接收器
      */
     private void initRxReceiver() {
@@ -159,7 +190,8 @@ public class RtpReceiver extends Receiver {
 
             @Override
             public void onNext(RtpPacket packet) {
-                connectPack(packet);
+                receiver.rtp2h264(packet.getPacket(), packet.getLength());
+//                connectPack(packet);
             }
 
             @Override

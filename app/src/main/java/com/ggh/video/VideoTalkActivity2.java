@@ -13,20 +13,24 @@ import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
 import com.ggh.video.net.Frame;
+import com.ggh.video.net.ReceiverCallback;
 import com.ggh.video.net.other.JRtpSender;
+import com.ggh.video.net.rtp.JlibRtpReceiver;
+import com.ggh.video.net.rtp.JlibRtpSender;
 
 /**
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity2 extends Activity implements CameraManager.OnFrameCallback{
+public class VideoTalkActivity2 extends Activity implements CameraManager.OnFrameCallback, ReceiverCallback {
     private SurfaceHolder mHoder;
     SurfaceView surfaceView;
     SurfaceView textureView;
     CameraManager manager;
     private Encode mEncode;
     private VideoDecodeManager mDecode;
-    private JRtpSender sender;
+    private JlibRtpSender sender;
+    private JlibRtpReceiver receiver;
     private Frame mFrame;
 
     @Override
@@ -38,7 +42,10 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
         initSurface(textureView);
         mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
-        sender = new JRtpSender();
+        sender = new JlibRtpSender();
+//        sender.setCallback(this);
+        receiver = new JlibRtpReceiver();
+        receiver.setCallback(this);
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,7 +53,11 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
                     @Override
                     public void run() {
 
-                        byte[] data = {1, 2, 3};
+                        byte[] data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                21, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                31, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                41, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
                         mFrame.setData(data);
                         mFrame.setSize(data.length);
                         sender.addData(mFrame);
@@ -68,11 +79,12 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     @Override
     public void onFrame(byte[] data) {
         byte[] encode = mEncode.encodeFrame(data);
+//        mDecode.onDecodeData(encode);
+
         Log.w("video", "发送数据 大小为" + encode.length);
         mFrame.setData(encode);
         mFrame.setSize(encode.length);
         sender.addData(mFrame);
-//        sender.sendData(mEncode.encodeFrame(data),mEncode.encodeFrame(data).length);
     }
 
     /**
@@ -101,4 +113,11 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
         });
     }
 
+    @Override
+    public void callback(byte[] data) {
+        if (mDecode != null && data.length > 0) {
+            Log.w("video", "接收数据 大小为" + data.length);
+            mDecode.onDecodeData(data);
+        }
+    }
 }

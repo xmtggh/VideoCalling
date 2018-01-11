@@ -47,13 +47,13 @@ public class RtpSender extends Send {
 
     public RtpSender() {
         rtpSendPacket = new RtpPacket(socketSendBuffer, 0);
-        receiver = new RtspPacketReceiver(640,480);
+        receiver = new RtspPacketReceiver(640, 480);
         sender = new RtspPacketSender(new RtspPacketSender.H264ToRtpLinsener() {
             @Override
             public void h264ToRtpResponse(byte[] out, int len) {
 //                receiver.rtp2h264(out,len);
                 try {
-                    LocalRtpSocketProvider.getInstance().getLocalRTPSocket().send(new RtpPacket(out,len));
+                    LocalRtpSocketProvider.getInstance().getLocalRTPSocket().send(new RtpPacket(out, len));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -86,19 +86,7 @@ public class RtpSender extends Send {
     }
 
     private void sendData(final Frame frame) {
-//        send(frame);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    sender.h264ToRtp(frame.getData(),frame.getSize());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-//        rxSend(frame);
+        rxSend(frame);
     }
 
     private void rxSend(final Frame frame) {
@@ -115,12 +103,12 @@ public class RtpSender extends Send {
 
             @Override
             public void onNext(Frame fram) {
-                try {
-                    sender.h264ToRtp(fram.getData(),fram.getSize());
+                /*try {
+                    sender.h264ToRtp(fram.getData(), fram.getSize());
                 } catch (Exception e) {
                     e.printStackTrace();
-                }
-//                connectPacket(fram);
+                }*/
+                connectPacket(fram);
 
             }
 
@@ -135,6 +123,7 @@ public class RtpSender extends Send {
             }
         });
     }
+
 
     private void connectPacket(Frame fram) {
         //最后一个包

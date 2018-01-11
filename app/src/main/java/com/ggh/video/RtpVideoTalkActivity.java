@@ -74,11 +74,11 @@ public class RtpVideoTalkActivity extends Activity implements CameraManager.OnFr
 
     @Override
     public void onFrame(byte[] data) {
-        byte[] encode = mEncode.encodeFrame(data);
+     /*   byte[] encode = mEncode.encodeFrame(data);
         Log.w("video", "发送数据 大小为" + encode.length);
         mFrame.setData(encode);
         mFrame.setSize(encode.length);
-        sender.addData(mFrame);
+        sender.addData(mFrame);*/
     }
 
     @Override
