@@ -17,6 +17,7 @@ import com.ggh.video.net.ReceiverCallback;
 import com.ggh.video.net.other.JRtpSender;
 import com.ggh.video.net.rtp.JlibRtpReceiver;
 import com.ggh.video.net.rtp.JlibRtpSender;
+import com.vonchenchen.android_video_demos.codec.FFmpegDecodeFrame;
 
 /**
  * Created by ZQZN on 2017/12/12.
@@ -32,6 +33,7 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     private JlibRtpSender sender;
     private JlibRtpReceiver receiver;
     private Frame mFrame;
+    FFmpegDecodeFrame ffmpegDecode;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,6 +97,7 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     private void initSurface(SurfaceView mSurfaceView) {
         mHoder = mSurfaceView.getHolder();
         mHoder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        ffmpegDecode = new FFmpegDecodeFrame(mHoder.getSurface());
         mHoder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -117,7 +120,8 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     public void callback(byte[] data) {
         if (mDecode != null && data.length > 0) {
             Log.w("video", "接收数据 大小为" + data.length);
-            mDecode.onDecodeData(data);
+//            mDecode.onDecodeData(data);
+            ffmpegDecode.decodeStream(data,data.length);
         }
     }
 }

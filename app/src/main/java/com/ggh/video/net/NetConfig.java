@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 public class NetConfig {
 
 //    public static final String REMOTEIP = "192.168.1.247";
-    public static final String REMOTEIP = "192.168.1.247";
+    public static final String REMOTEIP = "192.168.43.1";
     public static final int REMOTEPORT = 19998;
     public static final int packSize = 1400;
 

@@ -77,15 +77,15 @@ public class JlibRtpManager implements RTPAppIntf {
         DatagramSocket rtcpSocket = null;
 
         try {
-            rtpSocket = new DatagramSocket(6004);
-            rtcpSocket = new DatagramSocket(6005);
+            rtpSocket = new DatagramSocket(6002);
+            rtcpSocket = new DatagramSocket(6003);
         } catch (Exception e) {
             Log.d("ggh", "RTPSession failed to obtain port");
         }
 
         rtpSession = new RTPSession(rtpSocket, rtcpSocket);
         rtpSession.RTPSessionRegister(this, null, null);
-        Participant p = new Participant("192.168.1.247", 6002, 6003);
+        Participant p = new Participant("192.168.1.247", 6004, 6005);
         rtpSession.addParticipant(p);
     }
 
