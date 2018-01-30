@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +43,12 @@ public class UDPSender extends Send {
 
     private RtspPacketSender sender;
 
+    //nio udp
+    DatagramChannel channel;
+
+
     public UDPSender() {
-        bufferFrameList = new ArrayList<>();
+       /* bufferFrameList = new ArrayList<>();
         mSocket = LocalUDPSocketProvider.getInstance().getLocalUDPSocket();
         sender = new RtspPacketSender(new RtspPacketSender.H264ToRtpLinsener() {
             @Override
@@ -53,9 +60,14 @@ public class UDPSender extends Send {
             ip = NetConfig.getIpAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
-        }
+        }*/
 //        initDataPipe();
 //        initTaskSend();
+        try {
+            channel = DatagramChannel.open();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -146,7 +158,7 @@ public class UDPSender extends Send {
 
     @Override
     public void addData(final Frame frame) {
-        new Thread(new Runnable() {
+        /*new Thread(new Runnable() {
             @Override
             public void run() {
 //              sendData(frame.getData(), frame.getSize());
@@ -156,7 +168,8 @@ public class UDPSender extends Send {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }).start();*/
+        send(frame.getData());
 
         /*if (null != bufferFrameList) {
             bufferFrameList.add(frame);
@@ -177,5 +190,32 @@ public class UDPSender extends Send {
     @Override
     public void destroy() {
 
+    }
+
+    public void send(final byte[] data) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        sendMessage(channel,data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+
+    }
+
+    public static void sendMessage(DatagramChannel channel, byte[] mes) throws IOException {
+        if (mes == null || mes.length < 0) {
+            return;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(60000);
+        buffer.clear();
+        buffer.put(mes);
+        buffer.flip();
+        int send = channel.send(buffer, new InetSocketAddress("127.0.0.1", 1234));
+        Log.d("ggh", "发送 " + send + " 字节");
     }
 }

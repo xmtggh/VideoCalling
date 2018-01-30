@@ -59,15 +59,17 @@ public class JlibRtpReceiver extends Receiver implements JlibRtpManager.receiver
     }
 
     @Override
-    public void reveiver(final DataFrame frame, Participant participant) {
+    public void reveiver(final DataFrame frame, final Participant participant) {
         Observable.create(new ObservableOnSubscribe<byte[]>() {
             @Override
             public void subscribe(ObservableEmitter<byte[]> e) throws Exception {
-                 byte[] framed = connectFrame(frame.getConcatenatedData(), frame.getConcatenatedData().length, frame.marked(), frame.sequenceNumbers()[0], frame.rtpTimestamp());
+                Log.w("ggh", "收到数据" + frame.getConcatenatedData().length + "顺序"  + frame.sequenceNumbers()[0] + frame.timestamp());
+                /* byte[] framed = connectFrame(frame.getConcatenatedData(), frame.getConcatenatedData().length, frame.marked(), frame.sequenceNumbers()[0], frame.rtpTimestamp());
                 if (framed.length <= 0) {
                     return;
-                }
-                e.onNext(framed);
+                }*/
+
+//                e.onNext(framed);
             }
         }).subscribeOn(Schedulers.newThread()).subscribe(new Observer<byte[]>() {
             @Override

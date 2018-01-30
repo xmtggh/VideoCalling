@@ -4,11 +4,13 @@ import android.util.Log;
 
 import com.ggh.video.net.Frame;
 import com.ggh.video.net.LocalRtpSocketProvider;
+import com.ggh.video.net.LocalUDPSocketProvider;
 import com.ggh.video.net.NetConfig;
 import com.ggh.video.net.Send;
 import com.ggh.video.rtp.RtpPacket;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -51,12 +53,12 @@ public class RtpSender extends Send {
         sender = new RtspPacketSender(new RtspPacketSender.H264ToRtpLinsener() {
             @Override
             public void h264ToRtpResponse(byte[] out, int len) {
-//                receiver.rtp2h264(out,len);
-                try {
+                receiver.rtp2h264(out,len);
+               /* try {
                     LocalRtpSocketProvider.getInstance().getLocalRTPSocket().send(new RtpPacket(out, len));
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         });
     }
@@ -103,12 +105,12 @@ public class RtpSender extends Send {
 
             @Override
             public void onNext(Frame fram) {
-                /*try {
+                try {
                     sender.h264ToRtp(fram.getData(), fram.getSize());
                 } catch (Exception e) {
                     e.printStackTrace();
-                }*/
-                connectPacket(fram);
+                }
+//                connectPacket(fram);
 
             }
 
@@ -166,12 +168,9 @@ public class RtpSender extends Send {
                 pos = pos + sendPacketSize[i];
                 sendPacketSize[i] = 0;
                 try {
-//                    Log.i("ggh", "序列号   "+rtpSendPacket.getTimestamp()+"时间戳   " + rtpSendPacket.getSequenceNumber());
+                    Log.w("ggh", "发送数据   时间戳   "+rtpSendPacket.getTimestamp()+"序列号   " + rtpSendPacket.getSequenceNumber());
                     LocalRtpSocketProvider.getInstance().getLocalRTPSocket().send(rtpSendPacket);
-                    Thread.sleep(20);
                 } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 

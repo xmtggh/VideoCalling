@@ -13,23 +13,24 @@ import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
 import com.ggh.video.net.Frame;
-import com.ggh.video.net.ReceiverCallback;
 import com.ggh.video.net.udp.UDPReceiver;
 import com.ggh.video.net.udp.UDPSender;
+import com.ggh.video.rudp.RudpReceiver;
+import com.ggh.video.rudp.RudpSender;
 
 /**
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback,ReceiverCallback {
+public class RUDPVideoTalkActivity extends Activity implements CameraManager.OnFrameCallback {
     private SurfaceHolder mHoder;
     SurfaceView surfaceView;
     SurfaceView textureView;
     CameraManager manager;
     private Encode mEncode;
     private VideoDecodeManager mDecode;
-    private UDPSender sender;
-    private UDPReceiver receiver;
+    private RudpSender sender;
+    private RudpReceiver receiver;
     private Frame mFrame;
 
     @Override
@@ -41,10 +42,10 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         initSurface(textureView);
         mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
-        sender = new UDPSender();
-        receiver = new UDPReceiver();
-        receiver.startRecivice();
-        receiver.setCallback(this);
+        sender = new RudpSender();
+        receiver = new RudpReceiver();
+//        receiver.startRecivice();
+//        receiver.setCallback(this);
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,7 +53,6 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
                     @Override
                     public void run() {
                         byte[] data = {1, 2, 3};
-                        Frame mFrame = new Frame();
                         mFrame.setData(data);
                         mFrame.setSize(data.length);
                         sender.addData(mFrame);
@@ -81,14 +81,14 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 //        sender.sendData(mEncode.encodeFrame(data),mEncode.encodeFrame(data).length);
     }
 
-    @Override
+  /*  @Override
     public void callback(final byte[] data) {
         if (mDecode != null) {
             Log.w("video", "接收数据 大小为" + data.length);
             mDecode.onDecodeData(data);
 
         }
-    }
+    }*/
 
 
     /**
@@ -116,6 +116,5 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
             }
         });
     }
-
 
 }

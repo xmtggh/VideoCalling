@@ -173,6 +173,7 @@ public class RtpReceiver extends Receiver {
                 while (isReceiver) {
                     try {
                         LocalRtpSocketProvider.getInstance().getLocalRTPSocket().receive(rtpReceivePacket);
+                        rtpReceivePacket.getSequenceNumber();
                         e.onNext(rtpReceivePacket);
                         continue;
                     } catch (IOException e1) {
@@ -190,8 +191,8 @@ public class RtpReceiver extends Receiver {
 
             @Override
             public void onNext(RtpPacket packet) {
-                receiver.rtp2h264(packet.getPacket(), packet.getLength());
-//                connectPack(packet);
+//                receiver.rtp2h264(packet.getPacket(), packet.getLength());
+                connectPack(packet);
             }
 
             @Override
@@ -246,14 +247,15 @@ public class RtpReceiver extends Receiver {
         int sequence = rtp_receive_packet.getSequenceNumber();
         //获取时间戳
         long timestamp = rtp_receive_packet.getTimestamp();
+        Log.i("ggh", "收到数据   序列号   "+timestamp+"时间戳   " + sequence);
 
-        final byte[] frame = connectFrame(buffer, packetSize, rtp_receive_packet.hasMarker(), sequence, timestamp);
+        /*final byte[] frame = connectFrame(buffer, packetSize, rtp_receive_packet.hasMarker(), sequence, timestamp);
         if (frame.length <= 0) {
             return;
         }
         if (callback != null) {
             callback.callback(frame);
-        }
+        }*/
     }
 
     private Map<Integer, Packet> params;

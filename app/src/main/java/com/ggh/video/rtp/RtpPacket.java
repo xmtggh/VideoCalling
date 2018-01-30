@@ -27,7 +27,7 @@ import com.ggh.video.utils.Random;
 /**
  * RtpPacket implements a RTP packet.
  */
-public class RtpPacket {
+public class  RtpPacket {
 	/* RTP packet buffer containing both the RTP header and payload */
 	byte[] packet;
 

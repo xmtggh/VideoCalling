@@ -45,9 +45,9 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
         mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
         sender = new JlibRtpSender();
-//        sender.setCallback(this);
+        sender.setCallback(this);
         receiver = new JlibRtpReceiver();
-        receiver.setCallback(this);
+//        receiver.setCallback(this);
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,7 +82,6 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     public void onFrame(byte[] data) {
         byte[] encode = mEncode.encodeFrame(data);
 //        mDecode.onDecodeData(encode);
-
         Log.w("video", "发送数据 大小为" + encode.length);
         mFrame.setData(encode);
         mFrame.setSize(encode.length);
@@ -120,8 +119,8 @@ public class VideoTalkActivity2 extends Activity implements CameraManager.OnFram
     public void callback(byte[] data) {
         if (mDecode != null && data.length > 0) {
             Log.w("video", "接收数据 大小为" + data.length);
-//            mDecode.onDecodeData(data);
-            ffmpegDecode.decodeStream(data,data.length);
+            mDecode.onDecodeData(data);
+//            ffmpegDecode.decodeStream(data,data.length);
         }
     }
 }

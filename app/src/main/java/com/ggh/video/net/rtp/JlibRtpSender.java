@@ -1,5 +1,7 @@
 package com.ggh.video.net.rtp;
 
+import android.util.Log;
+
 import com.ggh.video.entity.Packet;
 import com.ggh.video.net.Frame;
 import com.ggh.video.net.LocalRtpSocketProvider;
@@ -162,16 +164,19 @@ public class JlibRtpSender extends Send {
                 seq.add(i);
                 if (i == sendPacketNum - 1) {
                     market.add(true);
-//                    callback.callback(connectFrame(data, data.length, true, i, timestamp));
+//                    Log.w("ggh","发送数据大小" +frameData.get(i).length+"时间戳" + timestamp);
+                    callback.callback(connectFrame(data, data.length, true, i, timestamp));
                 } else {
                     market.add(false);
-//                    callback.callback(connectFrame(data, data.length, false, i, timestamp));
+//                    Log.w("ggh","发送数据大小" +frameData.get(i).length+"时间戳" + timestamp);
+                    callback.callback(connectFrame(data, data.length, false, i, timestamp));
                 }
 
             }
 
         }
         //发送包
+
         JlibRtpManager.getInstance().sendData(frameData, market, timestamp, seq);
 
     }
