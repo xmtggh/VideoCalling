@@ -8,11 +8,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.ggh.video.decode.VideoDecodeManager;
+import com.ggh.video.decode.AndroidHradwareDecode;
 import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
-import com.ggh.video.net.Frame;
 import com.ggh.video.net.ReceiverCallback;
 import com.ggh.video.net.udp.UDPReceiver;
 import com.ggh.video.net.udp.UDPSender;
@@ -27,10 +26,9 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     SurfaceView textureView;
     CameraManager manager;
     private Encode mEncode;
-    private VideoDecodeManager mDecode;
+    private AndroidHradwareDecode mDecode;
     private UDPSender sender;
     private UDPReceiver receiver;
-    private Frame mFrame;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,7 +37,6 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         surfaceView = (SurfaceView) findViewById(R.id.surface);
         textureView = (SurfaceView) findViewById(R.id.texture);
         initSurface(textureView);
-        mFrame = new Frame();
         mEncode = new AndroidHradwareEncode();
         sender = new UDPSender();
         receiver = new UDPReceiver();
@@ -52,10 +49,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
                     @Override
                     public void run() {
                         byte[] data = {1, 2, 3};
-                        Frame mFrame = new Frame();
-                        mFrame.setData(data);
-                        mFrame.setSize(data.length);
-                        sender.addData(mFrame);
+
+                        sender.addData(data);
                     }
                 }).start();
 
@@ -75,10 +70,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     public void onFrame(byte[] data) {
         byte[] encode = mEncode.encodeFrame(data);
         Log.w("video", "发送数据 大小为" + encode.length);
-        mFrame.setData(encode);
-        mFrame.setSize(encode.length);
-        sender.addData(mFrame);
-//        sender.sendData(mEncode.encodeFrame(data),mEncode.encodeFrame(data).length);
+        sender.addData(encode);
     }
 
     @Override
@@ -102,10 +94,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         mHoder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
-                mDecode = new VideoDecodeManager(surfaceHolder);
-
+                mDecode = new AndroidHradwareDecode(surfaceHolder);
             }
-
             @Override
             public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
             }

@@ -10,7 +10,7 @@ public abstract class Send {
      * 添加数据到发送队列
      * @param frame
      */
-   protected abstract void addData(Frame frame);
+   protected abstract void addData(byte[] frame);
 
     /**
      * 开始发送数据

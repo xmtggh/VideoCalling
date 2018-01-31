@@ -24,14 +24,14 @@ import java.util.Set;
  * Created by ZQZN on 2017/9/14.
  */
 
-public class VideoDecodeManager {
+public class AndroidHradwareDecode {
     private long mPresentTimeUs;
     private MediaCodec vDeCodec = null;
     MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
     private boolean isStartDecode = false;
 
-    public VideoDecodeManager(SurfaceHolder holder) {
+    public AndroidHradwareDecode(SurfaceHolder holder) {
         initVideoEncode(holder);
     }
 
