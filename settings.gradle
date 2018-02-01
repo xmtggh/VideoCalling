@@ -1,1 +1,1 @@
-include ':app', ':rtplib', ':sample', ':netty', ':ffmpeglib'
+include ':app', ':ffmpeglib'
