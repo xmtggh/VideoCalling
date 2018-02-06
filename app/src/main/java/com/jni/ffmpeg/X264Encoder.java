@@ -1,15 +1,17 @@
-package com.ggh.video.encode;
+package com.jni.ffmpeg;
+
+import android.util.Log;
 
 import com.ggh.video.device.CameraConfig;
+import com.ggh.video.encode.Encode;
 
-public class X264Encoder implements Encode{
+public class X264Encoder implements Encode {
 
 	static {
 		System.loadLibrary("encoder");
 	}
 
 	public X264Encoder() {
-		initEncoder264(CameraConfig.WIDTH,CameraConfig.HEIGHT,CameraConfig.vbitrate,CameraConfig.framerate);
 	}
 
 	/******************** h264编码 **************************/
@@ -22,7 +24,10 @@ public class X264Encoder implements Encode{
 	@Override
 	public byte[] encodeFrame(byte[] data) {
 		byte[] after = new byte[data.length];
-		encoder264(data,after);
-		return after;
+		int h264Size = encoder264(data,after);
+		Log.d("ggh","编码大小" + h264Size);
+		byte[] restlt = new byte[h264Size];
+		System.arraycopy(after,0,restlt,0,h264Size);
+		return restlt;
 	}
 }

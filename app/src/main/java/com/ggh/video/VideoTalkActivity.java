@@ -10,10 +10,12 @@ import android.view.View;
 
 import com.ggh.video.binder.EncodeBinder;
 import com.ggh.video.decode.AndroidHradwareDecode;
+import com.ggh.video.device.AudioRecorder;
 import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
 import com.ggh.video.net.ReceiverCallback;
+import com.ggh.video.net.udp.AudioReceiver;
 import com.ggh.video.net.udp.UDPReceiver;
 import com.ggh.video.net.udp.UDPSender;
 
@@ -31,6 +33,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     private EncodeBinder binder;
     private AndroidHradwareDecode mDecode;
     private UDPReceiver receiver;
+    private AudioRecorder audioRecorder;
+    private AudioReceiver audioReceiver;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,6 +47,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         receiver = new UDPReceiver();
         receiver.startRecivice();
         receiver.setCallback(this);
+        audioReceiver = new AudioReceiver();
+        audioReceiver.startRecivice();
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -64,6 +70,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         super.onResume();
         manager = new CameraManager(surfaceView);
         manager.setOnFrameCallback(this);
+        audioRecorder = new AudioRecorder();
+        audioRecorder.startRecording();
     }
 
     @Override

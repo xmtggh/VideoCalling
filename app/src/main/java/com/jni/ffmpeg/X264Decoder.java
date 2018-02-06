@@ -1,4 +1,4 @@
-package com.ggh.video.decode;
+package com.jni.ffmpeg;
 
 public class X264Decoder {
 	

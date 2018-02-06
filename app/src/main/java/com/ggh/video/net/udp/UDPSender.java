@@ -2,6 +2,7 @@ package com.ggh.video.net.udp;
 
 import android.util.Log;
 
+import com.ggh.video.net.NetConfig;
 import com.ggh.video.net.Send;
 
 import java.io.IOException;
@@ -17,8 +18,7 @@ public class UDPSender extends Send {
 
     private boolean isStratSendData = true;
 
-    DatagramChannel channel;
-
+    private DatagramChannel channel;
 
     public UDPSender() {
 
@@ -76,7 +76,7 @@ public class UDPSender extends Send {
         buffer.clear();
         buffer.put(mes);
         buffer.flip();
-        int send = channel.send(buffer, new InetSocketAddress("127.0.0.1", 1234));
+        int send = channel.send(buffer, new InetSocketAddress(NetConfig.REMOTEIP, NetConfig.REMOTE_VIDEO_PORT));
         Log.d("ggh", "发送 " + send + " 字节");
     }
 }

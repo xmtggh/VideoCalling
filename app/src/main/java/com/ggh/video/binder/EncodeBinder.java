@@ -1,9 +1,11 @@
 package com.ggh.video.binder;
 
+import android.util.Log;
+
+import com.ggh.video.device.CameraConfig;
 import com.ggh.video.encode.AndroidHradwareEncode;
 import com.ggh.video.encode.Encode;
-import com.ggh.video.encode.X264Encoder;
-import com.ggh.video.net.Send;
+import com.jni.ffmpeg.X264Encoder;
 import com.ggh.video.net.udp.UDPSender;
 
 /**
@@ -17,18 +19,31 @@ public class EncodeBinder {
 
     private UDPSender sender;
     private Encode mEncode;
+    private boolean isfinish = false;
 
     public EncodeBinder(String type) {
         sender = new UDPSender();
         if (type.equals(ENCEDE_TYPE_ANDROIDHARDWARE)) {
             mEncode = new AndroidHradwareEncode();
+            isfinish = true;
         }else if (type.equals(ENCEDE_TYPE_X264)){
-            mEncode = new X264Encoder();
+            if (X264Encoder.initEncoder264(CameraConfig.WIDTH,CameraConfig.HEIGHT,CameraConfig.vbitrate,CameraConfig.framerate) < 0) {
+                Log.d("ggh", "初始化失败");
+            }else {
+                isfinish = true;
+                mEncode = new X264Encoder();
+
+            }
         }
+
+
     }
 
     public void receiver(byte[] data) {
-        byte[] encode = mEncode.encodeFrame(data);
-        sender.addData(encode);
+        if (isfinish){
+            byte[] encode = mEncode.encodeFrame(data);
+            sender.addData(encode);
+        }
+
     }
 }
