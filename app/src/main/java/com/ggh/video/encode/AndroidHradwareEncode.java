@@ -5,6 +5,8 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import com.ggh.video.device.CameraConfig;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -18,100 +20,81 @@ import static com.ggh.video.device.CameraConfig.WIDTH;
  * Created by ZQZN on 2017/9/14.
  */
 
-public class AndroidHradwareEncode implements Encode {
-    private long mPresentTimeUs;
-    private MediaCodec vCodec = null;
+public class AndroidHradwareEncode {
+    private MediaCodec codec = null;
 
-    private MediaCodec.BufferInfo videoBufferInfo = new MediaCodec.BufferInfo();
+    private int videoW;
+    private int videoH;
+    private int videoBitrate;
+    private int videoFrameRate;
 
+    private static final String TAG = "Encode";
+    private static final String MIME = "Video/AVC";
+    private IEncoderListener encoderListener;
+    public AndroidHradwareEncode(int videoW, int videoH, int videoBitrate, int videoFrameRate, IEncoderListener encoderListener) {
+        this.videoW = videoW;
+        this.videoH = videoH;
+        this.videoBitrate = videoBitrate;
+        this.videoFrameRate = videoFrameRate;
+        this.encoderListener = encoderListener;
 
-    public AndroidHradwareEncode() {
-        if (initVideoEncode()) {
-            Log.d("AndroidHradwareEncode", "初始化编码器成功");
-        } else {
-            Log.d("AndroidHradwareEncode", "初始化编码器失败");
-        }
+        initMediaCodec();
     }
-
-    public boolean initVideoEncode() {
-        mPresentTimeUs = System.nanoTime() / 1000;
+    private void initMediaCodec() {
         try {
-            vCodec = MediaCodec.createEncoderByType(VCODEC);
-        } catch (IOException e) {
+            codec = MediaCodec.createEncoderByType(MIME);
+
+            MediaFormat format = MediaFormat.createVideoFormat(MIME, videoW, videoH);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, videoFrameRate);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
+
+            codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            codec.start();
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
-        MediaFormat mediaFormat = MediaFormat.createVideoFormat(VCODEC, WIDTH, HEIGHT);
-        // 通过参数设置高中低码率
-        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, WIDTH * HEIGHT * 5);
-        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
-        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-        vCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        vCodec.start();
-        return true;
     }
 
-
-    public byte[] onEncodeVideoData(byte[] videoData) {
-        long pts = System.nanoTime() / 1000 - mPresentTimeUs;
-        byte[] yuv420sp = new byte[WIDTH * HEIGHT * 3 / 2];
-//        NV21ToNV12(videoData, yuv420sp, CIF_WIDTH, CIF_HEIGHT);
-//        NV21toI420SemiPlanar(videoData, yuv420sp, CIF_WIDTH, CIF_HEIGHT);
-//        rotateAndToNV12(videoData, yuv420sp, CIF_WIDTH, CIF_HEIGHT);
-//        swapYV12toI420(videoData, yuv420sp, CIF_WIDTH, CIF_HEIGHT);
-        return onEncodeVideoFrame(videoData, pts);
-    }
-
-    private byte[] onEncodeVideoFrame(byte[] yuvData, long pts) {
-        ByteBuffer[] inBuffers = vCodec.getInputBuffers();
-        ByteBuffer[] outBuffers = vCodec.getOutputBuffers();
-
-
-        int inBufferIndex = vCodec.dequeueInputBuffer(-1);
-        if (inBufferIndex >= 0) {
-            ByteBuffer bb = inBuffers[inBufferIndex];
-            bb.clear();
-            bb.put(yuvData, 0, yuvData.length);
-            vCodec.queueInputBuffer(inBufferIndex, 0, yuvData.length, pts, 0);
-        }
-
-        for (; ; ) {
-            int outBufferIndex = vCodec.dequeueOutputBuffer(videoBufferInfo, 0);
-            if (outBufferIndex >= 0) {
-                ByteBuffer bb = outBuffers[outBufferIndex];
-                byte[] outputData = new byte[videoBufferInfo.size];
-                bb.get(outputData);
-                vCodec.releaseOutputBuffer(outBufferIndex, false);
-                return outputData;
-            } else {
-                break;
+    public void encoderYUV420(byte[] input) {
+        try {
+            int inputBufferIndex = codec.dequeueInputBuffer(-1);
+            if (inputBufferIndex >= 0) {
+                ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferIndex);
+                inputBuffer.clear();
+                inputBuffer.put(input);
+                codec.queueInputBuffer(inputBufferIndex, 0, input.length, System.currentTimeMillis(), 0);
             }
-        }
-        return new byte[0];
-    }
 
-    private void NV21ToNV12(byte[] nv21, byte[] nv12, int width, int height) {
-        if (nv21 == null || nv12 == null) return;
-        int framesize = width * height;
-        int i = 0, j = 0;
-        System.arraycopy(nv21, 0, nv12, 0, framesize);
-        for (i = 0; i < framesize; i++) {
-            nv12[i] = nv21[i];
-        }
-        for (j = 0; j < framesize / 2; j += 2) {
-            nv12[framesize + j - 1] = nv21[j + framesize];
-        }
-        for (j = 0; j < framesize / 2; j += 2) {
-            nv12[framesize + j] = nv21[j + framesize - 1];
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            int outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
+            while (outputBufferIndex >= 0) {
+                ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferIndex);
+                byte[] outData = new byte[outputBuffer.remaining()];
+                outputBuffer.get(outData, 0, outData.length);
+                if (encoderListener != null) {
+                    encoderListener.onH264(outData);
+                }
+                codec.releaseOutputBuffer(outputBufferIndex, false);
+                outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    @Override
-    public byte[] encodeFrame(byte[] data) {
-        return onEncodeVideoData(data);
-
+    public void releaseMediaCodec() {
+        if (codec != null) {
+            codec.stop();
+            codec.release();
+            codec = null;
+        }
     }
 
+    public interface IEncoderListener {
+        void onH264(byte[] data);
+    }
 
 }

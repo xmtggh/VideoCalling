@@ -1,10 +1,13 @@
 package com.ggh.video.device;
 
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraDevice;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.apkfuns.logutils.LogUtils;
 
 import java.io.IOException;
 
@@ -71,7 +74,7 @@ public class CameraManager {
             //摄像头设置，预览视频,实例化摄像头类对象  0为后置 1为前置
             mCamera = Camera.open(0);
             //视频旋转90度
-            mCamera.setDisplayOrientation(0);
+            mCamera.setDisplayOrientation(90);
             //将摄像头参数传入p中
             Camera.Parameters p = mCamera.getParameters();
             p.setFlashMode("off");
@@ -79,6 +82,7 @@ public class CameraManager {
             p.setPreviewSize(CameraConfig.WIDTH, CameraConfig.HEIGHT);
             //设置预览的帧率，15帧/秒
             p.setPreviewFrameRate(CameraConfig.framerate);
+            p.setPreviewFormat(ImageFormat.NV21);
             //设置参数
             mCamera.setParameters(p);
 //            byte[] rawBuf = new byte[1400];
@@ -89,17 +93,21 @@ public class CameraManager {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //开始预览
             mCamera.startPreview();
             //获取帧
             //预览的回调函数在开始预览的时候以中断方式被调用，每秒调用15次，回调函数在预览的同时调出正在播放的帧
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] bytes, Camera camera) {
-                    onFrameCallback.onFrame(bytes);
+                    onFrameCallback.onCameraFrame(bytes);
                 }
             });
         }
+    }
+
+    public void startPreview(){
+        //开始预览
+        mCamera.startPreview();
     }
 
     /**
@@ -119,6 +127,6 @@ public class CameraManager {
     }
 
     public interface OnFrameCallback {
-        void onFrame(byte[] data);
+        void onCameraFrame(byte[] data);
     }
 }

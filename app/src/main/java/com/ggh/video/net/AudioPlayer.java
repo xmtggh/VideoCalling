@@ -71,7 +71,7 @@ public class AudioPlayer implements Runnable {
         System.arraycopy(rawData, 0, tempData, 0, size);
         decodedData.setRealData(tempData);
         dataList.add(decodedData);
-        Log.e(LOG, "Player添加数据 " + dataList.size());
+//        Log.e(LOG, "Player添加数据 " + dataList.size());
     }
 
     /*
@@ -99,7 +99,6 @@ public class AudioPlayer implements Runnable {
         while (isPlaying) {
             while (dataList.size() > 0) {
                 playData = dataList.remove(0);
-                Log.e(LOG, "播放后list中剩余数据数量： " + dataList.size());
                 audioTrack.write(playData.getRealData(), 0, playData.getSize());
                 // fos.write(playData.getRealData(), 0, playData.getSize());
                 // fos.flush();

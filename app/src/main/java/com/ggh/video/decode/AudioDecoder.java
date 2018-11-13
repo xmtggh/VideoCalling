@@ -32,6 +32,7 @@ public class AudioDecoder implements Runnable {
     private AudioDecoder() {
         this.dataList = Collections
                 .synchronizedList(new LinkedList<AudioData>());
+        startDecoding();
     }
 
 
@@ -66,12 +67,11 @@ public class AudioDecoder implements Runnable {
         Log.d(LOG, LOG + "initialized decoder");
         int decodeSize = 0;
         while (isDecoding) {
-            while (dataList.size() > 0) {
+            if (dataList.size() > 0) {
                 AudioData encodedData = dataList.remove(0);
                 decodedData = new short[Speex.getInstance().getFrameSize()];
                 byte[] data = encodedData.getReceiverdata();
                 decodeSize = Speex.getInstance().decode(data, decodedData, data.length);
-                Log.e(LOG, "解码一次" + data.length + " 解码后的长度 " + decodeSize);
                 if (decodeSize > 0) {
                     // add decoded audio to player
                     player.addData(decodedData, decodeSize);

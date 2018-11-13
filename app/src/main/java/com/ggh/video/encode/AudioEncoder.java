@@ -2,7 +2,7 @@ package com.ggh.video.encode;
 
 import android.util.Log;
 
-import com.ggh.video.net.udp.AudioSender;
+import com.ggh.video.binder.FrameProvider;
 import com.gyz.voipdemo_speex.util.Speex;
 
 import java.util.Collections;
@@ -70,8 +70,8 @@ public class AudioEncoder implements Runnable {
     @Override
     public void run() {
         // start sender before encoder
-        AudioSender sender = new AudioSender();
-        sender.startSending();
+//        AudioSender sender = new AudioSender();
+//        sender.startSending();
         int encodeSize = 0;
         byte[] encodedData;
 
@@ -91,11 +91,11 @@ public class AudioEncoder implements Runnable {
                 encodeSize = Speex.getInstance().encode(rawData.getRealData(),
                         0, encodedData, rawData.getSize());
                 if (encodeSize > 0) {
-                    sender.addData(encodedData, encodeSize);
+                    if (FrameProvider.getProvider()!=null)
+                    FrameProvider.getProvider().sendAudioFrame(encodedData);
                 }
             }
         }
-        sender.stopSending();
     }
 
 }

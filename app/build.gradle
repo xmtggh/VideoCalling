@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.ggh.video"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -29,7 +29,18 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.1'
-    compile 'org.greenrobot:eventbus:3.0.0'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    implementation 'org.greenrobot:eventbus:3.0.0'
     implementation project(':ffmpeglib')
+    implementation 'io.netty:netty-all:4.1.17.Final'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.ligboy.retrofit2:converter-fastjson-android:2.1.0'
+    // log日志打印输出
+    debugImplementation 'com.apkfuns.logutils:library:1.5.1.1'
+    releaseImplementation 'com.apkfuns.logutils:logutils-no-op:1.5.1.1'
+    // butterknife
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    //权限申请库
+    implementation 'com.yanzhenjie:permission:2.0.0-rc4'
 }
