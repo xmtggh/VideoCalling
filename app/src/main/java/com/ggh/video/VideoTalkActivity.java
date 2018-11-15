@@ -105,8 +105,10 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     //摄像头回调yuv数据
     @Override
     public void onCameraFrame(byte[] data) {
-        if (isSend)
-        provider.sendVideoFrame(data);//发送去编码
+        if (isSend) {
+
+            provider.sendVideoFrame(data);//发送去编码
+        }
 //
     }
 
@@ -134,5 +136,6 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
             }
         });
     }
+
 
 }

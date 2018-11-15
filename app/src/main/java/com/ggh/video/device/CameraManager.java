@@ -82,7 +82,7 @@ public class CameraManager {
             p.setPreviewSize(CameraConfig.WIDTH, CameraConfig.HEIGHT);
             //设置预览的帧率，15帧/秒
             p.setPreviewFrameRate(CameraConfig.framerate);
-            p.setPreviewFormat(ImageFormat.NV21);
+//            p.setPreviewFormat(ImageFormat.NV21);
             //设置参数
             mCamera.setParameters(p);
 //            byte[] rawBuf = new byte[1400];
@@ -99,7 +99,7 @@ public class CameraManager {
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
-                    onFrameCallback.onCameraFrame(data);
+                    onFrameCallback.onCameraFrame(rotateYUVDegree90(data,CameraConfig.WIDTH,CameraConfig.HEIGHT));
 
                 }
             });
