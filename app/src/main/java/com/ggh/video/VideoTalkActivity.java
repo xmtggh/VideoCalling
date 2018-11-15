@@ -65,14 +65,13 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
             @Override
             public void onVideoData(byte[] data) {
                 fFmpegDecodeFrame.decodeStream(data, data.length);
-
             }
 
             @Override
             public void onAudioData(byte[] data) {
                 AudioDecoder.getInstance().addData(data, data.length);
             }
-        }, FrameProvider.ENCEDE_TYPE_ANDROIDHARDWARE);
+        }, FrameProvider.ENCEDE_TYPE_X264);
 
 
         manager = new CameraManager(surfaceView);

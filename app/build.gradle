@@ -43,4 +43,5 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     //权限申请库
     implementation 'com.yanzhenjie:permission:2.0.0-rc4'
+    implementation project(':x264encoder')
 }

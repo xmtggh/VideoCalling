@@ -9,6 +9,7 @@
       <module fileurl="file://$PROJECT_DIR$/ffmpeglib/ffmpeglib.iml" filepath="$PROJECT_DIR$/ffmpeglib/ffmpeglib.iml" />
       <module fileurl="file://F:/code/VideoCalling/rtplib/rtplib.iml" filepath="F:/code/VideoCalling/rtplib/rtplib.iml" />
       <module fileurl="file://F:/code/VideoCalling/sample/sample.iml" filepath="F:/code/VideoCalling/sample/sample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/x264encoder/x264encoder.iml" filepath="$PROJECT_DIR$/x264encoder/x264encoder.iml" />
     </modules>
   </component>
 </project>

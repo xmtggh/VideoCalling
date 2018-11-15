@@ -1,15 +1,12 @@
 package com.ggh.video.binder;
 
-import android.util.Log;
-
 import com.ggh.video.device.CameraConfig;
 import com.ggh.video.encode.AndroidHradwareEncode;
-import com.ggh.video.encode.Encode;
 import com.ggh.video.net.udp.Message;
 import com.ggh.video.net.udp.NettyClient;
 import com.ggh.video.net.udp.NettyReceiverHandler;
-import com.jni.ffmpeg.X264Encoder;
-import com.ggh.video.net.udp.UDPSender;
+
+import example.sszpf.x264.x264sdk;
 
 /**
  * Created by ZQZN on 2018/2/1.
@@ -21,10 +18,12 @@ public class FrameProvider {
     public static final String ENCEDE_TYPE_X264 = "ENCEDE_TYPE_X264";
 
     private AndroidHradwareEncode mEncode;
+    private x264sdk x264Sdk;
     private boolean isfinish = false;
     private NettyClient nettyClient;
     private static FrameProvider provider;
 
+    public String currenType;
     private OnEncodeFrameCallback encodeFrameCallback;
 
     public void setEncodeFrameCallback(OnEncodeFrameCallback encodeFrameCallback) {
@@ -55,25 +54,31 @@ public class FrameProvider {
                 .frameResultedCallback(frameResultedCallback)
                 .build();
         if (type.equals(ENCEDE_TYPE_ANDROIDHARDWARE)) {//Android本身的硬编码
+            currenType = ENCEDE_TYPE_ANDROIDHARDWARE;
             mEncode = new AndroidHradwareEncode(CameraConfig.WIDTH, CameraConfig.HEIGHT, CameraConfig.vbitrate, CameraConfig.framerate, new AndroidHradwareEncode.IEncoderListener() {
                 @Override
                 public void onH264(byte[] data) {
                     //发送编码后的数据
                     nettyClient.sendData(data, Message.MES_TYPE_VIDEO);
-                    if (encodeFrameCallback!=null){
+                    if (encodeFrameCallback != null) {
                         encodeFrameCallback.onEncodeData(data);
                     }
                 }
             });
             isfinish = true;
         } else if (type.equals(ENCEDE_TYPE_X264)) {//x264编码
-            if (X264Encoder.initEncoder264(CameraConfig.WIDTH, CameraConfig.HEIGHT, CameraConfig.vbitrate, CameraConfig.framerate) < 0) {
-                Log.d("ggh", "初始化失败");
-            } else {
-                isfinish = true;
-//                mEncode = new X264Encoder();
-
-            }
+            currenType = ENCEDE_TYPE_X264;
+            x264Sdk = new x264sdk(CameraConfig.WIDTH, CameraConfig.HEIGHT, CameraConfig.framerate, CameraConfig.vbitrate, new x264sdk.listener() {
+                @Override
+                public void h264data(byte[] buffer, int length) {
+                    //发送编码后的数据
+                    nettyClient.sendData(buffer, Message.MES_TYPE_VIDEO);
+                    if (encodeFrameCallback != null) {
+                        encodeFrameCallback.onEncodeData(buffer);
+                    }
+                }
+            });
+            isfinish = true;
         }
         provider = this;
 
@@ -81,6 +86,7 @@ public class FrameProvider {
 
     /**
      * 发送测试数据
+     * A
      *
      * @param msg
      */
@@ -97,7 +103,11 @@ public class FrameProvider {
     public void sendVideoFrame(byte[] data) {
         if (isfinish) {
             //发送数据
-            mEncode.encoderYUV420(data);
+            if (currenType.equals(ENCEDE_TYPE_ANDROIDHARDWARE)) {
+                mEncode.encoderYUV420(data);
+            } else if (currenType.equals(ENCEDE_TYPE_X264)) {
+                x264Sdk.PushOriStream(data, data.length);
+            }
 
         }
     }
@@ -114,7 +124,7 @@ public class FrameProvider {
         }
     }
 
-    public interface OnEncodeFrameCallback{
+    public interface OnEncodeFrameCallback {
         void onEncodeData(byte[] data);
     }
 }

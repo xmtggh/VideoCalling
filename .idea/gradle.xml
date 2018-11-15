@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/ffmpeglib" />
+            <option value="$PROJECT_DIR$/x264encoder" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
