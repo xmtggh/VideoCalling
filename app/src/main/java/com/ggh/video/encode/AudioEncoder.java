@@ -2,7 +2,7 @@ package com.ggh.video.encode;
 
 import android.util.Log;
 
-import com.ggh.video.binder.FrameProvider;
+import com.ggh.video.provider.EncodeProvider;
 import com.gyz.voipdemo_speex.util.Speex;
 
 import java.util.Collections;
@@ -91,8 +91,8 @@ public class AudioEncoder implements Runnable {
                 encodeSize = Speex.getInstance().encode(rawData.getRealData(),
                         0, encodedData, rawData.getSize());
                 if (encodeSize > 0) {
-                    if (FrameProvider.getProvider()!=null)
-                    FrameProvider.getProvider().sendAudioFrame(encodedData);
+                    if (EncodeProvider.getProvider()!=null)
+                    EncodeProvider.getProvider().sendAudioFrame(encodedData);
                 }
             }
         }

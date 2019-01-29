@@ -1,4 +1,4 @@
-package com.ggh.video.binder;
+package com.ggh.video.provider;
 
 import com.ggh.video.device.CameraConfig;
 import com.ggh.video.encode.AndroidHradwareEncode;
@@ -12,7 +12,7 @@ import example.sszpf.x264.x264sdk;
  * Created by ZQZN on 2018/2/1.
  */
 
-public class FrameProvider {
+public class EncodeProvider {
     public static final String ENCEDE_TYPE_ANDROIDHARDWARE = "ENCEDE_TYPE_ANDROIDHARDWARE";
     public static final String ENCEDE_TYPE_FFMEPG = "ENCEDE_TYPE_FFMEPG";
     public static final String ENCEDE_TYPE_X264 = "ENCEDE_TYPE_X264";
@@ -21,7 +21,7 @@ public class FrameProvider {
     private x264sdk x264Sdk;
     private boolean isfinish = false;
     private NettyClient nettyClient;
-    private static FrameProvider provider;
+    private static EncodeProvider provider;
 
     public String currenType;
     private OnEncodeFrameCallback encodeFrameCallback;
@@ -30,7 +30,7 @@ public class FrameProvider {
         this.encodeFrameCallback = encodeFrameCallback;
     }
 
-    public static FrameProvider getProvider() {
+    public static EncodeProvider getProvider() {
         if (provider != null) {
             return provider;
         }
@@ -46,7 +46,7 @@ public class FrameProvider {
      * @param frameResultedCallback
      * @param type
      */
-    public FrameProvider(String targetIp, int targetPort, int bindPort, final NettyReceiverHandler.FrameResultedCallback frameResultedCallback, String type) {
+    public EncodeProvider(String targetIp, int targetPort, int bindPort, final NettyReceiverHandler.FrameResultedCallback frameResultedCallback, String type) {
         nettyClient = new NettyClient.
                 Builder().targetIp(targetIp)
                 .targetport(targetPort)
@@ -58,6 +58,7 @@ public class FrameProvider {
             mEncode = new AndroidHradwareEncode(CameraConfig.WIDTH, CameraConfig.HEIGHT, CameraConfig.vbitrate, CameraConfig.framerate, new AndroidHradwareEncode.IEncoderListener() {
                 @Override
                 public void onH264(byte[] data) {
+
                     //发送编码后的数据
                     nettyClient.sendData(data, Message.MES_TYPE_VIDEO);
                     if (encodeFrameCallback != null) {
@@ -127,4 +128,6 @@ public class FrameProvider {
     public interface OnEncodeFrameCallback {
         void onEncodeData(byte[] data);
     }
+
+
 }

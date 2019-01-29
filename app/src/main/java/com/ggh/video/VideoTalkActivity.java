@@ -4,23 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.util.DisplayMetrics;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.apkfuns.logutils.LogUtils;
-import com.ggh.video.binder.FrameProvider;
+import com.ggh.video.provider.EncodeProvider;
 import com.ggh.video.decode.AndroidHradwareDecode;
 import com.ggh.video.decode.AudioDecoder;
 import com.ggh.video.device.AudioRecorder;
-import com.ggh.video.device.CameraConfig;
 import com.ggh.video.device.CameraManager;
-import com.ggh.video.net.udp.AudioReceiver;
 import com.ggh.video.net.udp.NettyReceiverHandler;
-import com.vonchenchen.android_video_demos.codec.FFmpegDecodeFrame;
 
 /**
  * Created by ZQZN on 2017/12/12.
@@ -31,7 +25,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     SurfaceView surfaceView;
     SurfaceView textureView;
     CameraManager manager;
-    private FrameProvider provider;
+    private EncodeProvider provider;
     private AndroidHradwareDecode mDecode; //硬遍
     //    private FFmpegDecodeFrame fFmpegDecodeFrame;//ffmpeg 软编
     private AudioRecorder audioRecorder;
@@ -61,7 +55,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         textureView = (SurfaceView) findViewById(R.id.texture);
         initSurface(textureView);
 //        fFmpegDecodeFrame = new FFmpegDecodeFrame(textureView.getHolder().getSurface());
-        provider = new FrameProvider(ip, port, localPort, new NettyReceiverHandler.FrameResultedCallback() {
+        provider = new EncodeProvider(ip, port, localPort, new NettyReceiverHandler.FrameResultedCallback() {
             @Override
             public void onVideoData(byte[] data) {
 //                fFmpegDecodeFrame.decodeStream(data, data.length);
@@ -72,21 +66,12 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
             public void onAudioData(byte[] data) {
                 AudioDecoder.getInstance().addData(data, data.length);
             }
-        }, FrameProvider.ENCEDE_TYPE_ANDROIDHARDWARE);
+        }, EncodeProvider.ENCEDE_TYPE_ANDROIDHARDWARE);
 
 
         manager = new CameraManager(surfaceView);
         manager.setOnFrameCallback(VideoTalkActivity.this);
 
-        //摄像头编码过后的数据
-        provider.setEncodeFrameCallback(new FrameProvider.OnEncodeFrameCallback() {
-            @Override
-            public void onEncodeData(byte[] data) {
-                LogUtils.d("编码过后的数据" + data.length);
-
-//                mDecode.onDecodeData(data);
-            }
-        });
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
