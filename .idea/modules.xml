@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/VideoCalling.iml" filepath="$PROJECT_DIR$/.idea/VideoCalling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/VideoCalling.iml" filepath="$PROJECT_DIR$/VideoCalling.iml" />
       <module fileurl="file://F:/code/VideoCalling/.idea/VideoCalling.iml" filepath="F:/code/VideoCalling/.idea/VideoCalling.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://F:/code/VideoCalling/app/app.iml" filepath="F:/code/VideoCalling/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/ffmpeglib/ffmpeglib.iml" filepath="$PROJECT_DIR$/ffmpeglib/ffmpeglib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
       <module fileurl="file://F:/code/VideoCalling/rtplib/rtplib.iml" filepath="F:/code/VideoCalling/rtplib/rtplib.iml" />
       <module fileurl="file://F:/code/VideoCalling/sample/sample.iml" filepath="F:/code/VideoCalling/sample/sample.iml" />
       <module fileurl="file://$PROJECT_DIR$/x264encoder/x264encoder.iml" filepath="$PROJECT_DIR$/x264encoder/x264encoder.iml" />

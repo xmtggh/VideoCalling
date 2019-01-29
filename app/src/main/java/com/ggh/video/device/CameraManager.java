@@ -10,6 +10,9 @@ import android.view.SurfaceView;
 import com.apkfuns.logutils.LogUtils;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by ZQZN on 2017/12/12.
@@ -55,7 +58,7 @@ public class CameraManager {
 
             @Override
             public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-                Log.d("ggh","预览摄像头");
+                Log.d("ggh", "预览摄像头");
             }
 
             @Override
@@ -78,6 +81,28 @@ public class CameraManager {
             //将摄像头参数传入p中
             Camera.Parameters p = mCamera.getParameters();
             p.setFlashMode("off");
+
+            Camera.Parameters camParams = mCamera.getParameters();
+            List<Camera.Size> sizes = camParams.getSupportedPreviewSizes();
+            // Sort the list in ascending order
+            Collections.sort(sizes, new Comparator<Camera.Size>() {
+
+                public int compare(final Camera.Size a, final Camera.Size b) {
+                    return a.width * a.height - b.width * b.height;
+                }
+            });
+
+            // Pick the first preview size that is equal or bigger, or pick the last (biggest) option if we cannot
+            // reach the initial settings of imageWidth/imageHeight.
+            for (int i = 0; i < sizes.size(); i++) {
+                if ((sizes.get(i).width >= CameraConfig.WIDTH && sizes.get(i).height >= CameraConfig.HEIGHT) || i == sizes.size() - 1) {
+                    CameraConfig.WIDTH = sizes.get(i).width;
+                    CameraConfig.HEIGHT = sizes.get(i).height;
+                    Log.v("cameraManager", "Changed to supported resolution: " + CameraConfig.WIDTH + "x" + CameraConfig.HEIGHT);
+                    break;
+                }
+            }
+
             //设置预览视频的尺寸，CIF格式352×288
             p.setPreviewSize(CameraConfig.WIDTH, CameraConfig.HEIGHT);
             //设置预览的帧率，15帧/秒
@@ -101,7 +126,12 @@ public class CameraManager {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
 //                    onFrameCallback.onCameraFrame(rotateYUVDegree90(data,CameraConfig.WIDTH,CameraConfig.HEIGHT));
-                    onFrameCallback.onCameraFrame(data);
+//                    onFrameCallback.onCameraFrame(data);
+                    byte[] nv12 = new byte[data.length];
+                    NV21ToNV12(data, nv12, CameraConfig.WIDTH, CameraConfig.HEIGHT);
+//                    rotateYUV420Degree90(nv12,CameraConfig.WIDTH, CameraConfig.HEIGHT,90);
+//                    onFrameCallback.onCameraFrame(rotateYUV420Degree90(nv12,CameraConfig.WIDTH, CameraConfig.HEIGHT,90));
+                    onFrameCallback.onCameraFrame(nv12);
 
                 }
             });
@@ -109,7 +139,7 @@ public class CameraManager {
         }
     }
 
-    public void startPreview(){
+    public void startPreview() {
         //开始预览
         mCamera.startPreview();
     }
@@ -185,6 +215,75 @@ public class CameraManager {
         return yuv;
     }
 
+    /**
+     * nv21 转nv12
+     *
+     * @param nv21
+     * @param nv12
+     * @param width
+     * @param height
+     */
+    private void NV21ToNV12(byte[] nv21, byte[] nv12, int width, int height) {
+        if (nv21 == null || nv12 == null) return;
+        int framesize = width * height;
+        int i = 0, j = 0;
+        System.arraycopy(nv21, 0, nv12, 0, framesize);
+        for (i = 0; i < framesize; i++) {
+            nv12[i] = nv21[i];
+        }
+        for (j = 0; j < framesize / 2; j += 2) {
+            nv12[framesize + j - 1] = nv21[j + framesize];
+        }
+        for (j = 0; j < framesize / 2; j += 2) {
+            nv12[framesize + j] = nv21[j + framesize - 1];
+        }
+    }
 
+
+    public static byte[] rotateYUV420Degree90(byte[] input, int width, int height, int rotation) {
+        int frameSize = width * height;
+        int qFrameSize = frameSize / 4;
+        byte[] output = new byte[frameSize + 2 * qFrameSize];
+
+
+        boolean swap = (rotation == 90 || rotation == 270);
+        boolean yflip = (rotation == 90 || rotation == 180);
+        boolean xflip = (rotation == 270 || rotation == 180);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int xo = x, yo = y;
+                int w = width, h = height;
+                int xi = xo, yi = yo;
+                if (swap) {
+                    xi = w * yo / h;
+                    yi = h * xo / w;
+                }
+                if (yflip) {
+                    yi = h - yi - 1;
+                }
+                if (xflip) {
+                    xi = w - xi - 1;
+                }
+                output[w * yo + xo] = input[w * yi + xi];
+                int fs = w * h;
+                int qs = (fs >> 2);
+                xi = (xi >> 1);
+                yi = (yi >> 1);
+                xo = (xo >> 1);
+                yo = (yo >> 1);
+                w = (w >> 1);
+                h = (h >> 1);
+// adjust for interleave here
+                int ui = fs + (w * yi + xi) * 2;
+                int uo = fs + (w * yo + xo) * 2;
+// and here
+                int vi = ui + 1;
+                int vo = uo + 1;
+                output[uo] = input[ui];
+                output[vo] = input[vi];
+            }
+        }
+        return output;
+    }
 
 }

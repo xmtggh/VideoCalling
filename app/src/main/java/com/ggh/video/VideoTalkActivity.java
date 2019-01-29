@@ -32,8 +32,8 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     SurfaceView textureView;
     CameraManager manager;
     private FrameProvider provider;
-    //    private AndroidHradwareDecode mDecode; //硬遍
-    private FFmpegDecodeFrame fFmpegDecodeFrame;//ffmpeg 软编
+    private AndroidHradwareDecode mDecode; //硬遍
+    //    private FFmpegDecodeFrame fFmpegDecodeFrame;//ffmpeg 软编
     private AudioRecorder audioRecorder;
     private boolean isSend = false;
 
@@ -60,18 +60,19 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         surfaceView = (SurfaceView) findViewById(R.id.surface);
         textureView = (SurfaceView) findViewById(R.id.texture);
         initSurface(textureView);
-        fFmpegDecodeFrame = new FFmpegDecodeFrame(textureView.getHolder().getSurface());
+//        fFmpegDecodeFrame = new FFmpegDecodeFrame(textureView.getHolder().getSurface());
         provider = new FrameProvider(ip, port, localPort, new NettyReceiverHandler.FrameResultedCallback() {
             @Override
             public void onVideoData(byte[] data) {
-                fFmpegDecodeFrame.decodeStream(data, data.length);
+//                fFmpegDecodeFrame.decodeStream(data, data.length);
+                mDecode.onDecodeData(data);
             }
 
             @Override
             public void onAudioData(byte[] data) {
                 AudioDecoder.getInstance().addData(data, data.length);
             }
-        }, FrameProvider.ENCEDE_TYPE_X264);
+        }, FrameProvider.ENCEDE_TYPE_ANDROIDHARDWARE);
 
 
         manager = new CameraManager(surfaceView);
@@ -124,7 +125,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         mHoder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
-//                mDecode = new AndroidHradwareDecode(surfaceHolder);
+                mDecode = new AndroidHradwareDecode(surfaceHolder);
             }
 
             @Override
