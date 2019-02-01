@@ -67,8 +67,8 @@ public class AndroidHradwareEncode {
             if (inputBufferIndex >= 0) {
                 ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferIndex);
                 inputBuffer.clear();
-                inputBuffer.put(input);
-                codec.queueInputBuffer(inputBufferIndex, 0, input.length, System.currentTimeMillis(), 0);
+                inputBuffer.put(nv12);
+                codec.queueInputBuffer(inputBufferIndex, 0, nv12.length, System.currentTimeMillis(), 0);
             }
 
             MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
