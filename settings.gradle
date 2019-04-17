@@ -1,1 +1,1 @@
-include ':app', ':ffmpeglib', ':x264encoder', ':library'
+include ':app', ':ffmpeglib', ':x264encoder'
