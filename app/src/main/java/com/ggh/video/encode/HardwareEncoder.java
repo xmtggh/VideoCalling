@@ -3,50 +3,55 @@ package com.ggh.video.encode;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.util.Log;
 
+import com.ggh.video.Contants;
+import com.ggh.video.base.EncodeManager;
 import com.ggh.video.device.CameraConfig;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static com.ggh.video.device.CameraConfig.HEIGHT;
-import static com.ggh.video.device.CameraConfig.VCODEC;
-import static com.ggh.video.device.CameraConfig.WIDTH;
-
 /**
- * android 自带硬编码
+ * 视频硬编码
  *
- * Created by ZQZN on 2017/9/14.
- */
-
-public class AndroidHradwareEncode {
+ * @author xmtggh
+ * @time 2019/8/14
+ * @email 626393661@qq.com
+ **/
+public class HardwareEncoder extends EncodeManager {
+    /**
+     * 硬编码主要对象
+     */
     private MediaCodec codec = null;
 
-    private int videoW;
-    private int videoH;
-    private int videoBitrate;
-    private int videoFrameRate;
-
-    private static final String TAG = "Encode";
-    private static final String MIME = "Video/AVC";
-    private IEncoderListener encoderListener;
-    public AndroidHradwareEncode(int videoW, int videoH, int videoBitrate, int videoFrameRate, IEncoderListener encoderListener) {
-        this.videoW = videoW;
-        this.videoH = videoH;
-        this.videoBitrate = videoBitrate;
-        this.videoFrameRate = videoFrameRate;
-        this.encoderListener = encoderListener;
-
-        initMediaCodec();
+    /**
+     * 默认创建
+     */
+    public HardwareEncoder() {
+        super(Contants.WIDTH,Contants.HEIGHT,Contants.VBITRATE,Contants.FRAMERATE);
+        initEncode();
     }
-    private void initMediaCodec() {
-        try {
-            codec = MediaCodec.createEncoderByType(MIME);
 
-            MediaFormat format = MediaFormat.createVideoFormat(MIME, videoW, videoH);
-            format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
-            format.setInteger(MediaFormat.KEY_FRAME_RATE, videoFrameRate);
+    /**
+     * 自定义创建
+     * @param vWidth
+     * @param vHeight
+     * @param vBitrate
+     * @param vFrameRate
+     */
+    public HardwareEncoder(int vWidth, int vHeight, int vBitrate, int vFrameRate) {
+        super(vWidth, vHeight, vBitrate, vFrameRate);
+        initEncode();
+
+    }
+
+    @Override
+    protected void initEncode() {
+        try {
+            codec = MediaCodec.createEncoderByType(Contants.VIDEO_FORMAT_H264);
+
+            MediaFormat format = MediaFormat.createVideoFormat(Contants.VIDEO_FORMAT_H264, vWidth, vHeight);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, vBitrate);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, vFrameRate);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                     MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, CameraConfig.IFRAME_INTERVAL);
@@ -58,9 +63,20 @@ public class AndroidHradwareEncode {
         }
     }
 
-    public void encoderYUV420(byte[] input) {
-        byte[] nv12 = new byte[input.length];
-        NV21ToNV12(input, nv12, CameraConfig.WIDTH, CameraConfig.HEIGHT); //nv12转nv21
+    @Override
+    protected void destory() {
+        if (codec != null) {
+            codec.stop();
+            codec.release();
+            codec = null;
+        }
+    }
+
+    @Override
+    public void onEncodeData(byte[] data) {
+        byte[] nv12 = new byte[data.length];
+        //nv12转nv21
+        NV21ToNV12(data, nv12, CameraConfig.WIDTH, CameraConfig.HEIGHT);
 
         try {
             int inputBufferIndex = codec.dequeueInputBuffer(-1);
@@ -77,8 +93,8 @@ public class AndroidHradwareEncode {
                 ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferIndex);
                 byte[] outData = new byte[outputBuffer.remaining()];
                 outputBuffer.get(outData, 0, outData.length);
-                if (encoderListener != null) {
-                    encoderListener.onH264(outData);
+                if (mEncodeCallback != null) {
+                    mEncodeCallback.onEncodeCallback(outData);
                 }
                 codec.releaseOutputBuffer(outputBufferIndex, false);
                 outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
@@ -88,18 +104,14 @@ public class AndroidHradwareEncode {
         }
     }
 
-    public void releaseMediaCodec() {
-        if (codec != null) {
-            codec.stop();
-            codec.release();
-            codec = null;
-        }
-    }
-
-    public interface IEncoderListener {
-        void onH264(byte[] data);
-    }
-
+    /**
+     * 旋转90°
+     *
+     * @param data
+     * @param imageWidth
+     * @param imageHeight
+     * @return
+     */
     private byte[] rotateYUVDegree90(byte[] data, int imageWidth, int imageHeight) {
         byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
         // Rotate the Y luma
@@ -123,6 +135,14 @@ public class AndroidHradwareEncode {
         return yuv;
     }
 
+    /**
+     * 旋转270°
+     *
+     * @param data
+     * @param imageWidth
+     * @param imageHeight
+     * @return
+     */
     private byte[] rotateYUVDegree270AndMirror(byte[] data, int imageWidth, int imageHeight) {
         byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
         // Rotate and mirror the Y luma
@@ -221,6 +241,5 @@ public class AndroidHradwareEncode {
         }
         return output;
     }
-
 
 }

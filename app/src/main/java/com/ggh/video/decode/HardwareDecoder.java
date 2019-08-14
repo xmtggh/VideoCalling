@@ -1,52 +1,45 @@
 package com.ggh.video.decode;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.TextureView;
 
+import com.ggh.video.Contants;
+import com.ggh.video.base.DecodeManager;
 import com.ggh.video.device.CameraConfig;
-import com.ggh.video.encode.Frame;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 
 /**
- * Created by ZQZN on 2017/9/14.
- */
-
-public class AndroidHradwareDecode {
-    private long mPresentTimeUs;
+ * android硬解码
+ * @author xmtggh
+ * @time 2019/8/14
+ * @email 626393661@qq.com
+ **/
+public class HardwareDecoder extends DecodeManager {
     private MediaCodec vDeCodec = null;
     MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+    private SurfaceHolder holder;
 
-    private boolean isStartDecode = false;
-
-    public AndroidHradwareDecode(SurfaceHolder holder) {
-        initVideoEncode(holder);
+    public HardwareDecoder(SurfaceHolder holder) {
+        super(Contants.WIDTH,Contants.HEIGHT,Contants.VBITRATE,Contants.FRAMERATE);
+        this.holder = holder;
+        initDecode();
     }
 
-    public boolean initVideoEncode(SurfaceHolder holder) {
-        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, CameraConfig.WIDTH, CameraConfig.HEIGHT);
+    @Override
+    protected void initDecode() {
+        MediaFormat format = MediaFormat.createVideoFormat(Contants.VIDEO_FORMAT_H264, vWidth, vHeight);
         format.setInteger(MediaFormat.KEY_ROTATION,90);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, CameraConfig.vbitrate);
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, CameraConfig.framerate);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, vBitrate);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, vFrameRate);
 //        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
 //                MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, Contants.IFRAME_INTERVAL);
         try {
             // Get an instance of MediaCodec and give it its Mime type
-            vDeCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+            vDeCodec = MediaCodec.createDecoderByType(Contants.VIDEO_FORMAT_H264);
             // Configure the codec
             vDeCodec.configure(format, holder.getSurface(), null, 0);
             // Start the codec
@@ -54,11 +47,15 @@ public class AndroidHradwareDecode {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return true;
     }
 
+    @Override
+    protected void destory() {
 
-    public void onDecodeData(byte[] codeData) {
+    }
+
+    @Override
+    public void onDecodeData(byte[] data) {
         Log.e("ggh1", "解码前");
         ByteBuffer[] inputBuffer = vDeCodec.getInputBuffers();
         int inputIndex = vDeCodec.dequeueInputBuffer(0);
@@ -67,12 +64,12 @@ public class AndroidHradwareDecode {
             ByteBuffer buffer = inputBuffer[inputIndex];
 
             try {
-                buffer.put(codeData);
+                buffer.put(data);
             } catch (NullPointerException e) {
                 e.printStackTrace();
             }
 
-            vDeCodec.queueInputBuffer(inputIndex, 0, codeData.length, 0, 0);
+            vDeCodec.queueInputBuffer(inputIndex, 0, data.length, 0, 0);
         }
 
         int outputIndex = vDeCodec.dequeueOutputBuffer(info, 0);
@@ -80,7 +77,5 @@ public class AndroidHradwareDecode {
             vDeCodec.releaseOutputBuffer(outputIndex, true);
             Log.e("ggh1", "解码后");
         }
-
     }
-
 }

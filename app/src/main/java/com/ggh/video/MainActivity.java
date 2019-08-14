@@ -1,6 +1,7 @@
 package com.ggh.video;
 
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         tvIp.setText("本地ip地址为"+NetUtils.getIPAddress(MainActivity.this));
 
     }
+
 
     /**
      * 初始化权限事件

@@ -9,10 +9,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.ggh.video.provider.EncodeProvider;
-import com.ggh.video.decode.AndroidHradwareDecode;
+import com.ggh.video.base.DecodeManager;
+import com.ggh.video.base.EncodeManager;
 import com.ggh.video.decode.AudioDecoder;
-import com.ggh.video.device.AudioRecorder;
+import com.ggh.video.decode.HardwareDecoder;
+import com.ggh.video.encode.IEncoderCallback;
+import com.ggh.video.encode.X264Encoder;
+import com.ggh.video.net.udp.Message;
+import com.ggh.video.net.udp.NettyClient;
 import com.ggh.video.device.CameraManager;
 import com.ggh.video.net.udp.NettyReceiverHandler;
 
@@ -20,17 +24,20 @@ import com.ggh.video.net.udp.NettyReceiverHandler;
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback {
+public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback, NettyReceiverHandler.FrameResultedCallback{
     private SurfaceHolder mHoder;
-    SurfaceView surfaceView;
-    SurfaceView textureView;
+    //播放端
+    SurfaceView playerView;
+    //预览端
+    SurfaceView previewView;
     CameraManager manager;
-    private EncodeProvider provider;
-    private AndroidHradwareDecode mDecode; //硬遍
-    //    private FFmpegDecodeFrame fFmpegDecodeFrame;//ffmpeg 软编
-    private AudioRecorder audioRecorder;
+    //编码
+    private EncodeManager mEncodeManager;
+    //解码
+    private DecodeManager mDecodeManager;
+    //netty传输
+    private NettyClient mNettyClient;
     private boolean isSend = false;
-
     private String ip;
     private int port;
     private int localPort;
@@ -51,25 +58,31 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         ip = getIntent().getStringExtra("ip");
         port = getIntent().getIntExtra("port", 7888);
         localPort = getIntent().getIntExtra("localPort", 7999);
-        surfaceView = (SurfaceView) findViewById(R.id.surface);
-        textureView = (SurfaceView) findViewById(R.id.texture);
-        initSurface(textureView);
-//        fFmpegDecodeFrame = new FFmpegDecodeFrame(textureView.getHolder().getSurface());
-        provider = new EncodeProvider(ip, port, localPort, new NettyReceiverHandler.FrameResultedCallback() {
+        playerView = (SurfaceView) findViewById(R.id.surface);
+        previewView = (SurfaceView) findViewById(R.id.texture);
+        initSurface(previewView);
+        //初始化编码器
+        mEncodeManager = new X264Encoder();
+        //编码后数据
+        mEncodeManager.setEncodeCallback(new IEncoderCallback() {
             @Override
-            public void onVideoData(byte[] data) {
-//                fFmpegDecodeFrame.decodeStream(data, data.length);
-                mDecode.onDecodeData(data);
+            public void onEncodeCallback(byte[] data) {
+                //传输
+                mNettyClient.sendData(data, Message.MES_TYPE_VIDEO);
+                //不传输直接渲染
+//                mDecodeManager.onDecodeData(data);
             }
+        });
+        //使用netty传输接收
+        mNettyClient = new NettyClient.
+                Builder().targetIp(ip)
+                .targetPort(port)
+                .localPort(localPort)
+                .frameResultedCallback(this)
+                .build();
 
-            @Override
-            public void onAudioData(byte[] data) {
-                AudioDecoder.getInstance().addData(data, data.length);
-            }
-        }, EncodeProvider.ENCEDE_TYPE_ANDROIDHARDWARE);
 
-
-        manager = new CameraManager(surfaceView);
+        manager = new CameraManager(playerView);
         manager.setOnFrameCallback(VideoTalkActivity.this);
 
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
@@ -81,21 +94,16 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-
-    }
-
-    //摄像头回调yuv数据
+    /**
+     * 摄像头回调数据
+     * @param data
+     */
     @Override
     public void onCameraFrame(byte[] data) {
         if (isSend) {
-
-            provider.sendVideoFrame(data);//发送去编码
+            //发送去编码
+            mEncodeManager.onEncodeData(data);
         }
-//
     }
 
 
@@ -110,7 +118,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         mHoder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
-                mDecode = new AndroidHradwareDecode(surfaceHolder);
+                mDecodeManager = new HardwareDecoder(surfaceHolder);
             }
 
             @Override
@@ -123,5 +131,23 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
         });
     }
 
+    /**
+     * 接收视频回调
+     * @param data
+     */
+    @Override
+    public void onVideoData(byte[] data) {
+        mDecodeManager.onDecodeData(data);
 
+    }
+
+    /**
+     * 接收音频回调
+     * @param data
+     */
+    @Override
+    public void onAudioData(byte[] data) {
+        AudioDecoder.getInstance().addData(data, data.length);
+
+    }
 }

@@ -2,7 +2,6 @@ package com.ggh.video.encode;
 
 import android.util.Log;
 
-import com.ggh.video.provider.EncodeProvider;
 import com.gyz.voipdemo_speex.util.Speex;
 
 import java.util.Collections;

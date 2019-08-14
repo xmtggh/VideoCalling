@@ -57,7 +57,7 @@ public abstract class CodecWrapper {
         getOneFrame(data, width, height);
     }
 
-    abstract void getOneFrame(int[] data, int width, int height);
+    protected abstract void getOneFrame(int[] data, int width, int height);
 
     public native long get_codec();
     public native void decode_stream(byte[] data, int length, long decoder, Surface surface);
