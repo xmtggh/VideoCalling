@@ -90,8 +90,8 @@ public class AudioEncoder implements Runnable {
                 encodeSize = Speex.getInstance().encode(rawData.getRealData(),
                         0, encodedData, rawData.getSize());
                 if (encodeSize > 0) {
-                    if (EncodeProvider.getProvider()!=null)
-                    EncodeProvider.getProvider().sendAudioFrame(encodedData);
+//                    if (EncodeProvider.getProvider()!=null)
+//                    EncodeProvider.getProvider().sendAudioFrame(encodedData);
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.ggh.video.decode;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -18,9 +19,10 @@ import java.nio.ByteBuffer;
  * @email 626393661@qq.com
  **/
 public class HardwareDecoder extends DecodeManager {
-    private MediaCodec vDeCodec = null;
-    MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-    private SurfaceHolder holder;
+    protected MediaCodec vDeCodec = null;
+    protected MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+    protected SurfaceHolder holder;
+
 
     public HardwareDecoder(SurfaceHolder holder) {
         super(Contants.WIDTH,Contants.HEIGHT,Contants.VBITRATE,Contants.FRAMERATE);
@@ -75,7 +77,11 @@ public class HardwareDecoder extends DecodeManager {
         int outputIndex = vDeCodec.dequeueOutputBuffer(info, 0);
         if (outputIndex >= 0) {
             vDeCodec.releaseOutputBuffer(outputIndex, true);
+
             Log.e("ggh1", "解码后");
         }
     }
+
+
+
 }

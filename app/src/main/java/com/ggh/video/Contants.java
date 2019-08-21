@@ -18,4 +18,6 @@ public class Contants {
     public static final int FRAMERATE = 30;
     //关键镇间隔
     public static final int IFRAME_INTERVAL = 1;
+
+    public static final long DEFAULT_TIMEOUT_US = 0;//1000 * 10;
 }

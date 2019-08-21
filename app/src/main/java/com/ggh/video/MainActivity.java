@@ -1,15 +1,14 @@
 package com.ggh.video;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ggh.video.utils.CheckPermissionUtils;
 import com.ggh.video.utils.NetUtils;
 import com.ggh.video.utils.PermissionManager;
 import com.yanzhenjie.permission.Permission;

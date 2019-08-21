@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.ggh.video"
-        minSdkVersion 21
-        targetSdkVersion 26
+        minSdkVersion 19
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -22,13 +23,17 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.1'
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation project(':ffmpeglib')
@@ -39,9 +44,11 @@ dependencies {
     debugImplementation 'com.apkfuns.logutils:library:1.5.1.1'
     releaseImplementation 'com.apkfuns.logutils:logutils-no-op:1.5.1.1'
     // butterknife
-    implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'com.jakewharton:butterknife:10.1.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
     //权限申请库
     implementation 'com.yanzhenjie:permission:2.0.0-rc4'
     implementation project(':x264encoder')
+    implementation project(':opengl')
+    implementation 'com.android.support:multidex:1.0.3'
 }

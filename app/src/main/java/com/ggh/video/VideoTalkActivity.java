@@ -4,32 +4,39 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
+import com.apkfuns.logutils.LogUtils;
 import com.ggh.video.base.DecodeManager;
 import com.ggh.video.base.EncodeManager;
 import com.ggh.video.decode.AudioDecoder;
-import com.ggh.video.decode.HardwareDecoder;
+import com.ggh.video.decode.YuvHardwareDecoder;
+import com.ggh.video.device.CameraManager;
 import com.ggh.video.encode.IEncoderCallback;
 import com.ggh.video.encode.X264Encoder;
 import com.ggh.video.net.udp.Message;
 import com.ggh.video.net.udp.NettyClient;
-import com.ggh.video.device.CameraManager;
 import com.ggh.video.net.udp.NettyReceiverHandler;
+import com.lkl.opengl.MyGLSurfaceView;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Created by ZQZN on 2017/12/12.
  */
 
-public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback, NettyReceiverHandler.FrameResultedCallback{
+public class VideoTalkActivity extends Activity implements CameraManager.OnFrameCallback, NettyReceiverHandler.FrameResultedCallback {
     private SurfaceHolder mHoder;
     //播放端
-    SurfaceView playerView;
+    private SurfaceView preview;
     //预览端
-    SurfaceView previewView;
+    private SurfaceView playView;
+    private MyGLSurfaceView mGLSurfaceView;
     CameraManager manager;
     //编码
     private EncodeManager mEncodeManager;
@@ -55,12 +62,23 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_talk);
+        ButterKnife.bind(this);
         ip = getIntent().getStringExtra("ip");
         port = getIntent().getIntExtra("port", 7888);
         localPort = getIntent().getIntExtra("localPort", 7999);
-        playerView = (SurfaceView) findViewById(R.id.surface);
-        previewView = (SurfaceView) findViewById(R.id.texture);
-        initSurface(previewView);
+        preview = (SurfaceView) findViewById(R.id.surface);
+        playView = (SurfaceView) findViewById(R.id.texture);
+        mGLSurfaceView = (MyGLSurfaceView) findViewById(R.id.glv);
+        mGLSurfaceView.setYuvDataSize(Contants.WIDTH, Contants.HEIGHT);
+        mDecodeManager = new YuvHardwareDecoder();
+        mDecodeManager.setDecodeCallback(new IEncoderCallback() {
+            @Override
+            public void onEncodeCallback(byte[] data) {
+                LogUtils.d("222解码后视频长度" + data.length);
+                mGLSurfaceView.feedData(data, 1);
+            }
+        });
+//        initSurface(playView);
         //初始化编码器
         mEncodeManager = new X264Encoder();
         //编码后数据
@@ -82,7 +100,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
                 .build();
 
 
-        manager = new CameraManager(playerView);
+        manager = new CameraManager(preview);
         manager.setOnFrameCallback(VideoTalkActivity.this);
 
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
@@ -96,12 +114,14 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 
     /**
      * 摄像头回调数据
+     *
      * @param data
      */
     @Override
     public void onCameraFrame(byte[] data) {
         if (isSend) {
             //发送去编码
+            LogUtils.d("222编码前" + data.length);
             mEncodeManager.onEncodeData(data);
         }
     }
@@ -113,12 +133,19 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
      * @param mSurfaceView
      */
     private void initSurface(SurfaceView mSurfaceView) {
+        mDecodeManager = new YuvHardwareDecoder();
+        mDecodeManager.setDecodeCallback(new IEncoderCallback() {
+            @Override
+            public void onEncodeCallback(byte[] data) {
+                mGLSurfaceView.feedData(data, 0);
+            }
+        });
         mHoder = mSurfaceView.getHolder();
         mHoder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         mHoder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
-                mDecodeManager = new HardwareDecoder(surfaceHolder);
+
             }
 
             @Override
@@ -133,6 +160,7 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 
     /**
      * 接收视频回调
+     *
      * @param data
      */
     @Override
@@ -143,11 +171,18 @@ public class VideoTalkActivity extends Activity implements CameraManager.OnFrame
 
     /**
      * 接收音频回调
+     *
      * @param data
      */
     @Override
     public void onAudioData(byte[] data) {
         AudioDecoder.getInstance().addData(data, data.length);
+
+    }
+
+    @OnClick(R.id.btn)
+    public void onViewClicked() {
+        mGLSurfaceView.setDisplayOrientation(180);
 
     }
 }

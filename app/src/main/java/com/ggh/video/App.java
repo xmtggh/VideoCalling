@@ -2,6 +2,8 @@ package com.ggh.video;
 
 import android.app.Application;
 
+import androidx.multidex.MultiDex;
+
 import com.gyz.voipdemo_speex.util.Speex;
 
 
@@ -16,5 +18,6 @@ public class App extends Application {
         super.onCreate();
         app = this;
         Speex.getInstance().init();
+        MultiDex.install(this);
     }
 }

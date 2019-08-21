@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">OpenGL-YUV</string>
+
+    <string name="rationale_camera">该APP需要访问你的摄像机拍照、录像</string>
+</resources>
