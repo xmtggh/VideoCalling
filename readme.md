@@ -11,6 +11,14 @@ p2p局域网音视频通话的demo，只需要对方的ip，端口和绑定本�
 
 #### 2018-11-15
 使用了netty传输音视频数据，使用了speex降噪,使用了x264软编，mediacodec硬遍，ffmpeg软解，mediacodec硬解码的来处理yuv数据，之间传输的数据类型是h264
+#### 2019-08-26
+优化代码结构，添加opengl的代码，里面编解码请在代码层次自己选择使用
+- FFmpegDecoder 是ffmpeg软解
+- HardwareDecoder是 硬解（直接绑定serfaceview渲染）
+- YUVHardwareDecoder是 硬解出yuv数据交给其他第三方渲染
+
+- X264Encoder x264软编
+- HardwareEncoder 硬编码
 
 
 ### 感谢
