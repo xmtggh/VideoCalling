@@ -17,7 +17,7 @@ import java.nio.channels.DatagramChannel;
  */
 
 public class AudioReceiver {
-    private boolean isReceiver = false;
+    private volatile boolean isReceiver = true;
 
 
     public AudioReceiver() {
@@ -33,36 +33,42 @@ public class AudioReceiver {
         DatagramChannel datagramChannel = null;
         try {
             datagramChannel = DatagramChannel.open();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             datagramChannel.socket().bind(new InetSocketAddress(NetConfig.REMOTE_AUDIO_PORT));
+            
+            ByteBuffer buffer = ByteBuffer.allocate(60000);
+            byte b[];
+
+            while (isReceiver) {
+                buffer.clear();
+                SocketAddress socketAddress = null;
+                try {
+                    socketAddress = datagramChannel.receive(buffer);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("ggh", "接收数据失败", e);
+                    break;
+                }
+                if (socketAddress != null) {
+                    int position = buffer.position();
+                    b = new byte[position];
+                    buffer.flip();
+                    for (int i = 0; i < position; ++i) {
+                        b[i] = buffer.get();
+                    }
+                    Log.d("ggh", "接收到  " + b.length);
+                    AudioDecoder.getInstance().addData(b, b.length);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        ByteBuffer buffer = ByteBuffer.allocate(60000);
-        byte b[];
-
-        while (isReceiver) {
-            buffer.clear();
-            SocketAddress socketAddress = null;
-            try {
-                socketAddress = datagramChannel.receive(buffer);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (socketAddress != null) {
-                int position = buffer.position();
-                b = new byte[position];
-                buffer.flip();
-                for (int i = 0; i < position; ++i) {
-                    b[i] = buffer.get();
+            Log.e("ggh", "音频接收器初始化失败", e);
+        } finally {
+            if (datagramChannel != null) {
+                try {
+                    datagramChannel.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                Log.d("ggh", "接收到  " + b.length);
-                AudioDecoder.getInstance().addData(b, b.length);
-
             }
         }
     }
